@@ -1,7 +1,7 @@
 #
-# $Id: README.txt,v 1.2 2002-02-22 17:03:37 dan Exp $
+# $Id: README.txt,v 1.3 2003-04-12 11:25:56 dan Exp $
 #
-# Copyright (c) 2001-2002 DVL Software
+# Copyright (c) 2001-2003 DVL Software
 #
 
 Things to change before running:
