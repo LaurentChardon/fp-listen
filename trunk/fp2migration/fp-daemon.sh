@@ -1,5 +1,10 @@
 #!/bin/sh
-MSGSDIR=${HOME}/msgs/FreeBSD/incoming
+#
+# $Id: fp-daemon.sh,v 1.2 2002-02-22 17:03:35 dan Exp $
+#
+# Copyright (c) 2001-2002 DVL Software
+#
+MSGSDIR=${HOME}/msgs/FreeBSD/fp2migration
 OUTPUTDIR=${HOME}/msgs/FreeBSD/xml-output
 DESTDIR=${HOME}/msgs/FreeBSD/xml/
 

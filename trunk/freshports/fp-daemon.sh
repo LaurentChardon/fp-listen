@@ -1,6 +1,9 @@
 #!/bin/sh
-touch ${HOME}/laststarted
-#echo start
+#
+# $Id: fp-daemon.sh,v 1.3 2002-02-22 17:03:37 dan Exp $
+#
+# Copyright (c) 2001-2002 DVL Software
+#
 MSGSDIR=${HOME}/msgs/FreeBSD/incoming
 
 cd ${MSGSDIR}
@@ -15,6 +18,5 @@ while .
 			$HOME/scripts/freebsd-cvs.sh $i
 		done
 	fi
-#	echo .
 	sleep 1
 done
