@@ -1,0 +1,3 @@
+#!/bin/sh
+echo starting!
+exec setuidgid dan envdir ./env ./fp-daemon.sh
