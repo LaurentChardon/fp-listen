@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# $Id: config.sh.sample,v 1.1 2003-04-12 11:22:57 dan Exp $
+#
+# Copyright (c) 2001-2003 DVL Software
+#
+
+SCRIPTDIR=/usr/websites
+BASEDIR=${HOME}/FreshPorts
+QUEUES="beta.freshports.org working-copy.freshports.org"
