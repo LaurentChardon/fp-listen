@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: fp-daemon.sh,v 1.8 2003-09-12 19:59:18 dan Exp $
+# $Id: fp-daemon.sh,v 1.9 2004-12-23 19:50:09 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
 #
@@ -61,13 +61,30 @@ while .
 
 				RESULT=$?
 				echo result=$RESULT
+				basename=`basename ${i}`
 				if [ $RESULT -eq 0 ]
 				then
-					basename=`basename ${i}`
 					mv ${i} ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.raw
 				else
 					echo $i fails....
+
+					# move the files to the retry directory
 					mv $i ${BASEDIR}/${q}/msgs/FreeBSD/retry/
+
+					if [ -f  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.xml ]
+					then
+						mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.xml ${BASEDIR}/${q}/msgs/FreeBSD/retry/
+					fi
+
+					if [ -f  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.errors ]
+					then
+						mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.errors ${BASEDIR}/${q}/msgs/FreeBSD/retry/
+					fi
+
+					if [ -f  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.loading ]
+					then
+						mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.loading ${BASEDIR}/${q}/msgs/FreeBSD/retry/
+					fi
 				fi
 			done
 		else
