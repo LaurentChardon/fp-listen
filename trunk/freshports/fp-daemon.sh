@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: fp-daemon.sh,v 1.6 2003-04-12 11:22:57 dan Exp $
+# $Id: fp-daemon.sh,v 1.7 2003-05-24 13:14:48 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
 #
@@ -56,13 +56,15 @@ while .
 			for i in $FILES
 				do
 				echo "processing $i"
+
 				./freebsd-cvs.sh $i
 
 				RESULT=$?
 				echo result=$RESULT
 				if [ $RESULT -eq 0 ]
 				then
-					mv $i ${BASEDIR}/${q}/msgs/FreeBSD/raw/
+					basename=`basename ${i}`
+					mv ${i} ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.raw
 				else
 					echo $i fails....
 					mv $i ${BASEDIR}/${q}/msgs/FreeBSD/retry/
