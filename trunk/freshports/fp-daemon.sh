@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: fp-daemon.sh,v 1.7 2003-05-24 13:14:48 dan Exp $
+# $Id: fp-daemon.sh,v 1.8 2003-09-12 19:59:18 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
 #
@@ -28,9 +28,9 @@ for q in $QUEUES
 		exit
 	fi
 
-	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/raw/ ]
+	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/recent/ ]
 	then
-		echo "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/raw/"
+		echo "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/recent/"
 		exit
 	fi
 
