@@ -12,7 +12,7 @@ while .
 	then
 		for i in $FILES
 			do
-			$HOME/scripts/test-freebsd-cvs.sh $i
+			$HOME/scripts/freebsd-cvs.sh $i
 		done
 	fi
 #	echo .
