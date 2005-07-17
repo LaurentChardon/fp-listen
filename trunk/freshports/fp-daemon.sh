@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: fp-daemon.sh,v 1.9 2004-12-23 19:50:09 dan Exp $
+# $Id: fp-daemon.sh,v 1.10 2005-07-17 15:28:29 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
 #
@@ -68,23 +68,11 @@ while .
 				else
 					echo $i fails....
 
-					# move the files to the retry directory
+					# move the original email to the retry directory
 					mv $i ${BASEDIR}/${q}/msgs/FreeBSD/retry/
 
-					if [ -f  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.xml ]
-					then
-						mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.xml ${BASEDIR}/${q}/msgs/FreeBSD/retry/
-					fi
-
-					if [ -f  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.errors ]
-					then
-						mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.errors ${BASEDIR}/${q}/msgs/FreeBSD/retry/
-					fi
-
-					if [ -f  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.loading ]
-					then
-						mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.loading ${BASEDIR}/${q}/msgs/FreeBSD/retry/
-					fi
+					# and any other files as well
+					mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.* ${BASEDIR}/${q}/msgs/FreeBSD/retry/
 				fi
 			done
 		else
