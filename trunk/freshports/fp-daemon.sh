@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: fp-daemon.sh,v 1.10 2005-07-17 15:28:29 dan Exp $
+# $Id: fp-daemon.sh,v 1.11 2005-08-03 12:19:14 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
 #
@@ -13,30 +13,46 @@
 # sanity checking upon startup
 #
 
+check_for_jobs() {
+	#
+	# This flag file is only set by a job run by this script.
+	# A race condition should never arise.
+	#
+	FLAG="${SCRIPTDIR}/${q}/dynamic/job_waiting"
+	if [ -f ${FLAG} ]
+	then
+		logger fp-damon 'yes, there is a job waiting'
+		perl ./job-waiting.pl
+
+		rm ${FLAG}
+	fi
+}
+
+
 for q in $QUEUES
 	do
 
 	if [ ! -d ${SCRIPTDIR}/${q}/scripts ]
 	then
-		echo "Required directory does not exist: ${SCRIPTDIR}/${q}/scripts/"
+		logger fp-daemon "Required directory does not exist: ${SCRIPTDIR}/${q}/scripts/"
 		exit
 	fi
 
 	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/incoming ]
 	then
-		echo "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/incoming"
+		logger fp-daemon "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/incoming"
 		exit
 	fi
 
 	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/recent/ ]
 	then
-		echo "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/recent/"
+		logger fp-daemon "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/recent/"
 		exit
 	fi
 
 	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/retry/ ]
 	then
-		echo "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/retry/"
+		logger fp-daemon "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/retry/"
 		exit
 	fi
 done
@@ -48,25 +64,25 @@ while .
 		cd ${SCRIPTDIR}/${q}/scripts/
 
 		INCOMING=${BASEDIR}/${q}/msgs/FreeBSD/incoming
-		echo "looking in ${INCOMING}"
 		FILES=`echo ${INCOMING}/*`
 
 		if [ "$FILES" != "${INCOMING}/*" ]
 		then
+			logger fp-daemon "found stuff in ${INCOMING}"
 			for i in $FILES
 				do
-				echo "processing $i"
+				logger fp-daemon "processing $i"
 
 				./freebsd-cvs.sh $i
 
 				RESULT=$?
-				echo result=$RESULT
+				logger fp-daemon "result=$RESULT"
 				basename=`basename ${i}`
 				if [ $RESULT -eq 0 ]
 				then
 					mv ${i} ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.raw
 				else
-					echo $i fails....
+					logger fp-daemon "$i fails...."
 
 					# move the original email to the retry directory
 					mv $i ${BASEDIR}/${q}/msgs/FreeBSD/retry/
@@ -74,9 +90,12 @@ while .
 					# and any other files as well
 					mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.* ${BASEDIR}/${q}/msgs/FreeBSD/retry/
 				fi
+
+				check_for_jobs
 			done
 		else
-			echo "nothing found there"
+			check_for_jobs
+			logger fp-daemon "nothing found ${INCOMING}"
 		fi
 		sleep 3
 	done
