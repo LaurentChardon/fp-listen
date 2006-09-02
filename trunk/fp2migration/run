@@ -1,8 +1,0 @@
-#!/bin/sh
-#
-# $Id: run,v 1.2 2002-02-22 17:03:36 dan Exp $
-#
-# Copyright (c) 2001-2002 DVL Software
-#
-echo starting!
-exec setuidgid dan envdir ./env sh ./fp-daemon.sh
