@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: fp-daemon.sh,v 1.14 2006-09-11 23:05:21 dan Exp $
+# $Id: fp-daemon.sh,v 1.15 2006-09-11 23:35:01 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
 #
@@ -114,6 +114,6 @@ while .
 #				logger -t ${LOGGERTAG} "nothing found ${INCOMING}"
 			fi
 		fi
-		sleep 3
 	done
+	sleep 3
 done
