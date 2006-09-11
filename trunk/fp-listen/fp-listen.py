@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 #
+# $Id: fp-listen.py,v 1.2 2006-09-11 01:49:16 dan Exp $
+#
 # This program listens for events on the database and processes them
 #
 
@@ -7,7 +9,7 @@
 # configuration items
 #
 DSN = 'dbname=freshports.org user=dan'
-CACHEPATH = '/usr/websites/beta.freshports.org/dynamic/caching/cache/ports/%s/%s.Details.html'
+CACHEPATH = '/usr/websites/beta.freshports.org/dynamic/caching/cache/ports/%s/%s.Detail.html'
 
 import sys, psycopg, select
 
@@ -15,50 +17,38 @@ import os		# for deleting cache files
 import syslog	# for logging
 
 def RemoveCacheEntry():
-  syslog.syslog(syslog.LOG_NOTICE, 'removing cache entries')
+  syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
   dbh = psycopg.connect(DSN)
   dbh.autocommit(0)
   curs = dbh.cursor()
 
-  first_row = 1;  
   curs.execute("SELECT id, port_id, category, port FROM cache_clearing_ports ORDER BY id")
   NumRows = curs.rowcount
+  dbh.commit();
   if (NumRows > 0):
+    syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     for row in curs.dictfetchall():
-      if (first_row):
-        min_id = row['id']
-        max_id = row['id']
-        first_row = 0
-      # end if
-
-      min_id = min(row['id'], min_id)
-      max_id = max(row['id'], max_id)
-      # other processing goes here
-
-      syslog.syslog(syslog.LOG_NOTICE, 'removing %s/%s' % (row['category'], row['port']))
-
-# OSError: [Errno 2] No such file or directory: '/usr/websites/beta.freshports.org/dynamic/caching/cache/ports/devel/py-sip.Details.html'
-#
       filename = CACHEPATH % (row['category'], row['port'])
+      syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+
       try:
         os.remove(filename)
       except OSError, err:
         if err[0] == 2:
-          continue  # no file to delete, so no worries
+          pass  # no file to delete, so no worries
           
         else:
           syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
           continue
         # end if
         
-    syslog.syslog(syslog.LOG_NOTICE, 'removing %s entries between %s and %s' % (NumRows, min_id, max_id))
-    curs.execute("DELETE FROM cache_clearing_ports WHERE id BETWEEN %d AND %d", (min_id, max_id))
-#    dbh.commit()
-        
+      syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_ports WHERE id = %d" % (row['id']))
+      curs.execute("DELETE FROM cache_clearing_ports WHERE id = %d" % (row['id']))
+      dbh.commit()
 
     # end for
   else:
-    syslog.syslog(syslog.LOG_ERR, 'No cached entries found for removal')
+    syslog.syslog(syslog.LOG_ERR, 'ERROR: No cached entries found for removal')
   # end if
     
   syslog.syslog(syslog.LOG_NOTICE, 'finished')
@@ -96,7 +86,7 @@ print "Now listening..."
 while 1:
   select.select([curs],[],[])==([],[],[])
   curs.execute("SELECT 1")
-  syslog.syslog(syslog.LOG_NOTICE, 'Just work up')
+  syslog.syslog(syslog.LOG_NOTICE, 'Just woke up! *************')
   notifies = curs.notifies()
   for n in notifies:
     print "got %s" % n[0]
