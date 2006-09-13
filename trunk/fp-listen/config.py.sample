@@ -1,0 +1,10 @@
+import os
+
+#
+# configuration items
+#
+DBNAME		= 'freshports.org'
+DBUSER		= 'dan'
+SCRIPTDIR	= "/usr/websites"
+BASEDIR		= os.environ.get("HOME") + "/FreshPorts"
+QUEUENAME	= "freshports.org"
