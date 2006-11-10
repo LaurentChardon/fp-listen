@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: fp-daemon.sh,v 1.16 2006-11-10 13:52:02 dan Exp $
+# $Id: fp-daemon.sh,v 1.17 2006-11-10 14:08:26 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
 #
@@ -62,7 +62,7 @@ done
 
 echo things
 
-while true
+while :
 	do
 	for q in $QUEUES
 		do
