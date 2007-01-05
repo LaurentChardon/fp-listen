@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# $Id: fp-listen.py,v 1.3 2006-09-13 22:12:34 dan Exp $
+# $Id: fp-listen.py,v 1.4 2007-01-05 01:35:18 dan Exp $
 #
 # This program listens for events on the database and processes them
 #
@@ -9,13 +9,14 @@ import sys, psycopg, select
 
 import os		# for deleting cache files
 import syslog	# for logging
+import glob		# for glob
 
 import config 	# my configuration items
 from config import *
 
 DSN = 'dbname=' + config.DBNAME + ' user=' + DBUSER
 
-CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s.Detail.html'
+CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s.Detail.*.html'
 
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
@@ -29,11 +30,12 @@ def RemoveCacheEntry():
   if (NumRows > 0):
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     for row in curs.dictfetchall():
-      filename = CACHEPATH % (row['category'], row['port'])
-      syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+      filenameglob = CACHEPATH % (row['category'], row['port'])
+      syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filenameglob))
 
       try:
-        os.remove(filename)
+        for filename in glob.glob(filenameglob):
+          os.remove(filename)
       except OSError, err:
         if err[0] == 2:
           pass  # no file to delete, so no worries
