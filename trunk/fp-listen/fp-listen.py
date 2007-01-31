@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# $Id: fp-listen.py,v 1.4 2007-01-05 01:35:18 dan Exp $
+# $Id: fp-listen.py,v 1.5 2007-01-31 22:46:24 dan Exp $
 #
 # This program listens for events on the database and processes them
 #
@@ -56,6 +56,18 @@ def RemoveCacheEntry():
     
   syslog.syslog(syslog.LOG_NOTICE, 'finished')
   return NumRows
+  
+def Touch(File):
+  if not os.path.exists(File):
+    fd = open(File, 'w')
+    fd.close()
+  os.utime(File, None)
+
+def ProcessCategoryNew():
+  syslog.syslog(syslog.LOG_NOTICE, 'We have a new category')
+  
+  Touch(WWWENPortsCategoriesFlag)
+  Touch(JOBWAITING)
 
 def ProcessPortsMoved():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/MOVED')
@@ -101,6 +113,8 @@ while 1:
         ProcessPortsUpdating()
       elif listens[n[0]] == 'listen_vuxml':
         ProcessVUXML()
+      elif listens[n[0]] == 'listen_category_new':
+        ProcessCategoryNew()
       else:
         syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % n[0])
     else:
