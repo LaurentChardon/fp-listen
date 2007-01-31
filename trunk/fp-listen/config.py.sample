@@ -8,3 +8,8 @@ DBUSER		= 'dan'
 SCRIPTDIR	= "/usr/websites"
 BASEDIR		= os.environ.get("HOME") + "/FreshPorts"
 QUEUENAME	= "freshports.org"
+
+# used for processing category updates
+DYNAMICDIR	= SCRIPTDIR + '/' + QUEUENAME + '/dynamic'
+WWWENPortsCategoriesFlag = DYNAMICDIR + '/www.en.ports.categories'
+JOBWAITING	= DYNAMICDIR + '/job_waiting'
