@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# $Id: fp-listen.py,v 1.5 2007-01-31 22:46:24 dan Exp $
+# $Id: fp-listen.py,v 1.6 2007-02-13 23:11:22 dan Exp $
 #
 # This program listens for events on the database and processes them
 #
@@ -16,7 +16,7 @@ from config import *
 
 DSN = 'dbname=' + config.DBNAME + ' user=' + DBUSER
 
-CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s.Detail.*.html'
+CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s/*.html'
 
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
@@ -59,7 +59,7 @@ def RemoveCacheEntry():
   
 def Touch(File):
   if not os.path.exists(File):
-    fd = open(File, 'w')
+    fd = open(File, 'aos.O_WRONLY | os.O_NONBLOCK | os.O_CREAT | os.O_NOCTTY | os.O_APPEND')
     fd.close()
   os.utime(File, None)
 
