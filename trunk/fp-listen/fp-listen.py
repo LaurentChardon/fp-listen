@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# $Id: fp-listen.py,v 1.6 2007-02-13 23:11:22 dan Exp $
+# $Id: fp-listen.py,v 1.7 2007-06-04 03:28:24 dan Exp $
 #
 # This program listens for events on the database and processes them
 #
@@ -10,13 +10,14 @@ import sys, psycopg, select
 import os		# for deleting cache files
 import syslog	# for logging
 import glob		# for glob
+import shutil	# for rmtree
 
 import config 	# my configuration items
 from config import *
 
 DSN = 'dbname=' + config.DBNAME + ' user=' + DBUSER
 
-CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s/*.html'
+CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s/*'
 
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
@@ -35,7 +36,12 @@ def RemoveCacheEntry():
 
       try:
         for filename in glob.glob(filenameglob):
-          os.remove(filename)
+          syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+          if os.path.isfile(filename):
+            os.remove(filename)
+          else:
+            shutil.rmtree(filename)
+
       except OSError, err:
         if err[0] == 2:
           pass  # no file to delete, so no worries
