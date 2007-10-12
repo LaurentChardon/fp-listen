@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# $Id: fp-listen.py,v 1.7 2007-06-04 03:28:24 dan Exp $
+# $Id: fp-listen.py,v 1.8 2007-10-12 16:32:34 dan Exp $
 #
 # This program listens for events on the database and processes them
 #
@@ -11,6 +11,8 @@ import os		# for deleting cache files
 import syslog	# for logging
 import glob		# for glob
 import shutil	# for rmtree
+
+import urllib	# for fetching files
 
 import config 	# my configuration items
 from config import *
@@ -32,7 +34,7 @@ def RemoveCacheEntry():
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     for row in curs.dictfetchall():
       filenameglob = CACHEPATH % (row['category'], row['port'])
-      syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filenameglob))
+      syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
 
       try:
         for filename in glob.glob(filenameglob):
@@ -72,6 +74,7 @@ def Touch(File):
 def ProcessCategoryNew():
   syslog.syslog(syslog.LOG_NOTICE, 'We have a new category')
   
+  urllib.urlretrieve("http://www.freebsd.org/cgi/cvsweb.cgi/~checkout~/www/en/ports/categories?rev=HEAD;content-type=text%2Fplain", '/usr/websites/freshports.org/dynamic/caching/tmp/categories');
   Touch(WWWENPortsCategoriesFlag)
   Touch(JOBWAITING)
 
