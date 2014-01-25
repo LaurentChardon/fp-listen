@@ -17,7 +17,7 @@ import urllib	# for fetching files
 import config 	# my configuration items
 from config import *
 
-DSN = 'dbname=' + config.DBNAME + ' user=' + DBUSER
+DSN = 'host=' + config.HOST + ' dbname=' + config.DBNAME + ' user=' + DBUSER + ' password=' + config.PASSWORD
 
 CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s/*'
 
