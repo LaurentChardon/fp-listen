@@ -6,7 +6,6 @@ import os
 DBNAME		= 'freshports.org'
 DBUSER		= 'dan'
 SCRIPTDIR	= "/usr/websites"
-BASEDIR		= os.environ.get("HOME") + "/FreshPorts"
 QUEUENAME	= "freshports.org"
 
 # used for processing category updates
