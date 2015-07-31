@@ -20,7 +20,7 @@ check_for_jobs() {
 	# This flag file is only set by a job run by this script.
 	# A race condition should never arise.
 	#
-	FLAG="${SCRIPTDIR}/${q}/dynamic/job_waiting"
+	FLAG="${BASEDIR}/dynamic/job_waiting"
 	if [ -f ${FLAG} ]
 	then
 		logger -t ${LOGGERTAG} 'yes, there is a job waiting'
@@ -35,9 +35,9 @@ logger -t ${LOGGERTAG} "starting up!"
 for q in $QUEUES
 	do
 
-	if [ ! -d ${SCRIPTDIR}/${q}/scripts ]
+	if [ ! -d ${SCRIPTDIR} ]
 	then
-		logger -t ${LOGGERTAG} "Required directory does not exist: ${SCRIPTDIR}/${q}/scripts/"
+		logger -t ${LOGGERTAG} "Required directory does not exist: ${SCRIPTDIR}"
 		exit
 	fi
 
@@ -60,20 +60,18 @@ for q in $QUEUES
 	fi
 done
 
-echo things
-
 while :
 	do
 	for q in $QUEUES
 		do
-		cd ${SCRIPTDIR}/${q}/scripts/
+		cd ${SCRIPTDIR}
 
 		INCOMING=${BASEDIR}/${q}/msgs/FreeBSD/incoming
 		FILES=`echo ${INCOMING}/*`
 
 		if [ -e 'OFFLINE' ]
 		then
-			logger -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/${q}/scripts/OFFLINE exists"
+			logger -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 			break
 		else
 			if [ "$FILES" != "${INCOMING}/*" ]
@@ -83,7 +81,7 @@ while :
 				do
 					if [ -e 'OFFLINE' ]
 					then
-						logger -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/${q}/scripts/OFFLINE exists"
+						logger -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 						break
 					else
 						logger -t ${LOGGERTAG} "processing $i"
@@ -106,12 +104,14 @@ while :
 							mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.* ${BASEDIR}/${q}/msgs/FreeBSD/retry/
 						fi
 
+exit
+
 						check_for_jobs
 					fi
 				done
 			else
 				check_for_jobs
-#				logger -t ${LOGGERTAG} "nothing found ${INCOMING}"
+				logger -t ${LOGGERTAG} "nothing found ${INCOMING}"
 			fi
 		fi
 	done
