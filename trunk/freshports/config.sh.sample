@@ -7,4 +7,5 @@
 
 SCRIPTDIR=/usr/websites
 BASEDIR=${HOME}/FreshPorts
+FLAGDIR=/usr/websites/freshports.org/dynamic
 QUEUES="freshports.org"

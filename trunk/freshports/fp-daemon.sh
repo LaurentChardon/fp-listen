@@ -20,7 +20,7 @@ check_for_jobs() {
 	# This flag file is only set by a job run by this script.
 	# A race condition should never arise.
 	#
-	FLAG="${BASEDIR}/dynamic/job_waiting"
+	FLAG="${FLAGDIR}/job_waiting"
 	if [ -f ${FLAG} ]
 	then
 		logger -t ${LOGGERTAG} 'yes, there is a job waiting'
@@ -103,8 +103,6 @@ while :
 							# and any other files as well
 							mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.* ${BASEDIR}/${q}/msgs/FreeBSD/retry/
 						fi
-
-exit
 
 						check_for_jobs
 					fi
