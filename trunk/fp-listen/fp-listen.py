@@ -19,8 +19,6 @@ from config import *
 
 DSN = 'host=' + config.HOST + ' dbname=' + config.DBNAME + ' user=' + DBUSER + ' password=' + config.PASSWORD
 
-CACHEPATH = config.SCRIPTDIR + '/' + config.QUEUENAME + '/dynamic/caching/cache/ports/%s/%s/*'
-
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
   dbh = psycopg.connect(DSN)
@@ -33,7 +31,7 @@ def RemoveCacheEntry():
   if (NumRows > 0):
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     for row in curs.dictfetchall():
-      filenameglob = CACHEPATH % (row['category'], row['port'])
+      filenameglob = config.PORT_CACHE_PATH % (row['category'], row['port'])
       syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
 
       try:
@@ -64,7 +62,52 @@ def RemoveCacheEntry():
     
   syslog.syslog(syslog.LOG_NOTICE, 'finished')
   return NumRows
-  
+
+def ClearDateCacheEntries():
+  syslog.syslog(syslog.LOG_NOTICE, 'checking for cache date to remove...')
+  dbh = psycopg.connect(DSN)
+  dbh.autocommit(0)
+  curs = dbh.cursor()
+
+  curs.execute("SELECT id, date_to_clear FROM cache_clearing_dates ORDER BY id")
+  NumRows = curs.rowcount
+  dbh.commit();
+  if (NumRows > 0):
+    syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
+    for row in curs.dictfetchall():
+      syslog.syslog(syslog.LOG_NOTICE, 'looking at %s' % (row['date_to_clear']))
+      filenameglob = config.DATE_CACHE_PATH % (row['date_to_clear'].strftime('%Y'), row['date_to_clear'].strftime('%m'), row['date_to_clear'].strftime('%d'))
+      syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
+
+      try:
+        for filename in glob.glob(filenameglob):
+          syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+          if os.path.isfile(filename):
+            os.remove(filename)
+          else:
+            shutil.rmtree(filename)
+
+      except OSError, err:
+        if err[0] == 2:
+          pass  # no file to delete, so no worries
+          
+        else:
+          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
+          continue
+        # end if
+        
+      syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_dates WHERE id = %d" % (row['id']))
+      curs.execute("DELETE FROM cache_clearing_dates WHERE id = %d" % (row['id']))
+      dbh.commit()
+
+    # end for
+  else:
+    syslog.syslog(syslog.LOG_ERR, 'ERROR: No cached entries found for removal')
+  # end if
+    
+  syslog.syslog(syslog.LOG_NOTICE, 'finished')
+  return NumRows
+
 def Touch(File):
   if not os.path.exists(File):
     fd = open(File, 'aos.O_WRONLY | os.O_NONBLOCK | os.O_CREAT | os.O_NOCTTY | os.O_APPEND')
@@ -124,6 +167,8 @@ while 1:
         ProcessVUXML()
       elif listens[n[0]] == 'listen_category_new':
         ProcessCategoryNew()
+      elif listens[n[0]] == 'listen_date_updated':
+        ClearDateCacheEntries()
       else:
         syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % n[0])
     else:
