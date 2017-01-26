@@ -5,11 +5,13 @@
 # This program listens for events on the database and processes them
 #
 
-import sys, psycopg, select
+import sys
+import psycopg2
+import select
 
-import os		# for deleting cache files
+import os	# for deleting cache files
 import syslog	# for logging
-import glob		# for glob
+import glob	# for glob
 import shutil	# for rmtree
 
 import urllib	# for fetching files
@@ -21,8 +23,7 @@ DSN = 'host=' + config.HOST + ' dbname=' + config.DBNAME + ' user=' + DBUSER + '
 
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
-  dbh = psycopg.connect(DSN)
-  dbh.autocommit(0)
+  dbh = psycopg2.connect(DSN)
   curs = dbh.cursor()
 
   curs.execute("SELECT id, port_id, category, port FROM cache_clearing_ports ORDER BY id")
@@ -65,8 +66,7 @@ def RemoveCacheEntry():
 
 def ClearDateCacheEntries():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache date to remove...')
-  dbh = psycopg.connect(DSN)
-  dbh.autocommit(0)
+  dbh = psycopg2.connect(DSN)
   curs = dbh.cursor()
 
   curs.execute("SELECT id, date_to_clear FROM cache_clearing_dates ORDER BY id")
@@ -134,8 +134,8 @@ syslog.openlog('fp-listen')
 
 syslog.syslog(syslog.LOG_NOTICE, 'Starting up')
 
-conn = psycopg.connect(DSN)
-conn.autocommit(1)
+conn = psycopg2.connect(DSN)
+conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
 curs = conn.cursor()
 
@@ -143,35 +143,41 @@ curs.execute("SELECT name, script_name FROM listen_for ORDER BY id")
 listens_for = curs.fetchall()
 
 listens = dict()
+print "These are the (event name, script name) pairs we are ready for:"
 for listen in listens_for:
   curs.execute("LISTEN %s" % listen[0])
   listens[listen[0]] = listen[1]
-  print listen
+  print "('%s', '%s')" % (listen[0], listen[1])
 
 while 1:
-  select.select([curs],[],[])==([],[],[])
-  curs.execute("SELECT 1")
-  syslog.syslog(syslog.LOG_NOTICE, 'Just woke up! *************')
-  notifies = curs.notifies()
-  for n in notifies:
-    # in real life, do something with each...
-    syslog.syslog(syslog.LOG_NOTICE, "got %s and I need to call %s" % (n[0], listens[n[0]]))
-    if listens.has_key(n[0]):
-      if listens[n[0]]   == 'listen_port':
-        RemoveCacheEntry()
-      elif listens[n[0]] == 'listen_ports_moved':
-        ProcessPortsMoved()
-      elif listens[n[0]] == 'listen_ports_updating':
-        ProcessPortsUpdating()
-      elif listens[n[0]] == 'listen_vuxml':
-        ProcessVUXML()
-      elif listens[n[0]] == 'listen_category_new':
-        ProcessCategoryNew()
-      elif listens[n[0]] == 'listen_date_updated':
-        ClearDateCacheEntries()
+  if select.select([conn],[],[],5)==([],[],[]):
+    syslog.syslog(syslog.LOG_NOTICE, 'timeout! *************')
+  else:
+    conn.poll()
+    #curs.execute("SELECT 1")
+    syslog.syslog(syslog.LOG_NOTICE, 'Just woke up! *************')
+    while conn.notifies:
+      notify = conn.notifies.pop(0);
+      # in real life, do something with each...
+      syslog.syslog(syslog.LOG_NOTICE, "Got NOTIFY: %d, %s, %s" % (notify.pid, notify.channel, notify.payload));
+#      syslog.syslog(syslog.LOG_NOTICE, "got %s and I need to call %s" % (notify[0], listens[notify[0]]))
+      if listens.has_key(notify.channel):
+        syslog.syslog(syslog.LOG_NOTICE, "found key %s" % (notify.channel));
+        if listens[notify.channel]   == 'listen_port':
+          RemoveCacheEntry()
+        elif listens[notify.channel] == 'listen_ports_moved':
+          ProcessPortsMoved()
+        elif listens[notify.channel] == 'listen_ports_updating':
+          ProcessPortsUpdating()
+        elif listens[notify.channel] == 'listen_vuxml':
+          ProcessVUXML()
+        elif listens[notify.channel] == 'listen_category_new':
+          ProcessCategoryNew()
+        elif listens[notify.channel] == 'listen_date_updated':
+          ClearDateCacheEntries()
+        else:
+          syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % notify.channel)
       else:
-        syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % n[0])
-    else:
-      syslog.syslog(syslog.LOG_NOTICE, 'no such key!')
+        syslog.syslog(syslog.LOG_NOTICE, 'no such key in listens array for %s!' % (notify.channel))
 
 logging.error('terminating')
