@@ -60,7 +60,7 @@ while :
 	do
 	cd ${SCRIPTDIR}
 
-	INCOMING=${BASEDIR}/message-queues/incoming
+	INCOMING=${INGRESSDIR}/message-queues/incoming
 	FILES=`echo ${INCOMING}/*`
 
 	if [ -e 'OFFLINE' ]
