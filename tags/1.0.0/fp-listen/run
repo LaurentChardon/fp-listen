@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# $Id: run,v 1.1 2006-09-08 02:02:30 dan Exp $
+#
+# Copyright (c) 2001-2006 DVL Software
+#
+echo starting!
+exec setuidgid dan envdir ./env ./fp-listen.py

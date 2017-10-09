@@ -1,0 +1,22 @@
+import os
+
+#
+# configuration items
+#
+DBNAME		= 'freshports.org'
+DBUSER		= 'dan'
+SCRIPTDIR	= "/usr/websites"
+
+BASEDIR         = '/usr/local/www/freshports.org'
+
+HOST            = "localhost"
+PASSWORD        = "password"
+QUEUENAME	= "freshports.org"
+
+PORT_CACHE_PATH = BASEDIR + '/dynamic/caching/cache/ports/%s/%s/*'
+DATE_CACHE_PATH = BASEDIR + '/archives/%s/%s/%s.*'
+
+# used for processing category updates
+DYNAMICDIR	= SCRIPTDIR + '/' + QUEUENAME + '/dynamic'
+WWWENPortsCategoriesFlag = DYNAMICDIR + '/www.en.ports.categories'
+JOBWAITING	= DYNAMICDIR + '/job_waiting'
