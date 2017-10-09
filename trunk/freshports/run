@@ -5,4 +5,4 @@
 # Copyright (c) 2001-2004 DVL Software
 #
 echo starting!
-exec setuidgid dan envdir ./env sh ./fp-daemon.sh
+exec setuidgid freshports envdir ./env sh ./fp-daemon.sh

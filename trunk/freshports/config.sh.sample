@@ -5,7 +5,10 @@
 # Copyright (c) 2001-2003 DVL Software
 #
 
-SCRIPTDIR=/usr/websites
-BASEDIR=${HOME}/FreshPorts
-FLAGDIR=/usr/websites/freshports.org/dynamic
-QUEUES="freshports.org"
+PERL="/usr/local/bin/perl"
+LOGGER="/usr/bin/logger"
+
+SCRIPTDIR="/usr/local/libexec/freshports"
+BASEDIR="/var/db/freshports"
+INGRESSDIR="/var/db/ingress"
+FLAGDIR="${BASEDIR}/signals"

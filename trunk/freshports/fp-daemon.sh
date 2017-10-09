@@ -23,95 +23,88 @@ check_for_jobs() {
 	FLAG="${FLAGDIR}/job_waiting"
 	if [ -f ${FLAG} ]
 	then
-		logger -t ${LOGGERTAG} 'yes, there is a job waiting'
-		perl ./job-waiting.pl
+		${LOGGER} -t ${LOGGERTAG} 'yes, there is a job waiting'
+		${PERL} ./job-waiting.pl
 
 		rm ${FLAG}
 	fi
 }
 
-logger -t ${LOGGERTAG} "starting up!"
+${LOGGER} -t ${LOGGERTAG} "starting up!"
 
-for q in $QUEUES
-	do
+if [ ! -d ${SCRIPTDIR} ]
+then
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${SCRIPTDIR}"
+	exit
+fi
 
-	if [ ! -d ${SCRIPTDIR} ]
-	then
-		logger -t ${LOGGERTAG} "Required directory does not exist: ${SCRIPTDIR}"
-		exit
-	fi
+if [ ! -d ${INGRESSDIR}/message-queues/incoming ]
+then
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${INGRESSDIR}/message-queues/incoming"
+	exit
+fi
 
-	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/incoming ]
-	then
-		logger -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/incoming"
-		exit
-	fi
+if [ ! -d ${BASEDIR}/message-queues/recent/ ]
+then
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/message-queues/recent/"
+	exit
+fi
 
-	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/recent/ ]
-	then
-		logger -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/recent/"
-		exit
-	fi
-
-	if [ ! -d ${BASEDIR}/${q}/msgs/FreeBSD/retry/ ]
-	then
-		logger -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/${q}/msgs/FreeBSD/retry/"
-		exit
-	fi
-done
+if [ ! -d ${BASEDIR}/message-queues/retry/ ]
+then
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/message-queues/retry/"
+	exit
+fi
 
 while :
 	do
-	for q in $QUEUES
-		do
-		cd ${SCRIPTDIR}
+	cd ${SCRIPTDIR}
 
-		INCOMING=${BASEDIR}/${q}/msgs/FreeBSD/incoming
-		FILES=`echo ${INCOMING}/*`
+	INCOMING=${BASEDIR}/message-queues/incoming
+	FILES=`echo ${INCOMING}/*`
 
-		if [ -e 'OFFLINE' ]
+	if [ -e 'OFFLINE' ]
+	then
+		${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
+		break
+	else
+		if [ "$FILES" != "${INCOMING}/*" ]
 		then
-			logger -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
-			break
-		else
-			if [ "$FILES" != "${INCOMING}/*" ]
-			then
-				logger -t ${LOGGERTAG} "found stuff in ${INCOMING}"
-				for i in $FILES
-				do
-					if [ -e 'OFFLINE' ]
+			${LOGGER} -t ${LOGGERTAG} "found stuff in ${INCOMING}"
+			for i in $FILES
+			do
+				if [ -e 'OFFLINE' ]
+				then
+					${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
+					break
+				else
+					${LOGGER} -t ${LOGGERTAG} "processing $i"
+
+					./freebsd-cvs.sh $i
+
+					RESULT=$?
+					${LOGGER} -t ${LOGGERTAG} "result=$RESULT"
+					basename=`basename ${i}`
+					if [ $RESULT -eq 0 ]
 					then
-						logger -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
-						break
+						mv ${i} ${BASEDIR}/message-queues/recent/${basename}.raw
 					else
-						logger -t ${LOGGERTAG} "processing $i"
+						${LOGGER} -t ${LOGGERTAG} "$i fails...."
 
-						./freebsd-cvs.sh $i
+						# move the original email to the retry directory
+						mv $i ${BASEDIR}/message-queues/retry/
 
-						RESULT=$?
-						logger -t ${LOGGERTAG} "result=$RESULT"
-						basename=`basename ${i}`
-						if [ $RESULT -eq 0 ]
-						then
-							mv ${i} ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.raw
-						else
-							logger -t ${LOGGERTAG} "$i fails...."
-
-							# move the original email to the retry directory
-							mv $i ${BASEDIR}/${q}/msgs/FreeBSD/retry/
-
-							# and any other files as well
-							mv  ${BASEDIR}/${q}/msgs/FreeBSD/recent/${basename}.* ${BASEDIR}/${q}/msgs/FreeBSD/retry/
-						fi
-
-						check_for_jobs
+						# and any other files as well
+						mv  ${BASEDIR}/message-queues/recent/${basename}.* ${BASEDIR}/message-queues/retry/
 					fi
-				done
-			else
-				check_for_jobs
-				logger -t ${LOGGERTAG} "nothing found ${INCOMING}"
-			fi
+
+					check_for_jobs
+				fi
+			done
+		else
+			check_for_jobs
+			${LOGGER} -t ${LOGGERTAG} "nothing found ${INCOMING}"
 		fi
-	done
+	fi
 	sleep 3
 done
