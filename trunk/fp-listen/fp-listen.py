@@ -16,10 +16,12 @@ import shutil	# for rmtree
 
 import urllib	# for fetching files
 
-import config 	# my configuration items
-from config import *
+import configparser
 
-DSN = 'host=' + config.HOST + ' dbname=' + config.DBNAME + ' user=' + DBUSER + ' password=' + config.PASSWORD
+config = configparser.ConfigParser()
+config.read('/usr/local/etc/freshports/fp-listen.ini')
+
+DSN = 'host=' + config['database']['HOST'] + ' dbname=' + config['database']['DBNAME'] + ' user=' + config['database']['DBUSER'] + ' password=' + config['database']['PASSWORD']
 
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
@@ -32,7 +34,7 @@ def RemoveCacheEntry():
   if (NumRows > 0):
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     for row in curs.dictfetchall():
-      filenameglob = config.PORT_CACHE_PATH % (row['category'], row['port'])
+      filenameglob = config['dirs']['PORT_CACHE_PATH'] % (row['category'], row['port'])
       syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
 
       try:
@@ -76,7 +78,7 @@ def ClearDateCacheEntries():
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     for row in curs.dictfetchall():
       syslog.syslog(syslog.LOG_NOTICE, 'looking at %s' % (row['date_to_clear']))
-      filenameglob = config.DATE_CACHE_PATH % (row['date_to_clear'].strftime('%Y'), row['date_to_clear'].strftime('%m'), row['date_to_clear'].strftime('%d'))
+      filenameglob = config['dirs']['DATE_CACHE_PATH'] % (row['date_to_clear'].strftime('%Y'), row['date_to_clear'].strftime('%m'), row['date_to_clear'].strftime('%d'))
       syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
 
       try:
@@ -118,8 +120,8 @@ def ProcessCategoryNew():
   syslog.syslog(syslog.LOG_NOTICE, 'We have a new category')
   
   urllib.urlretrieve("http://www.freebsd.org/cgi/cvsweb.cgi/~checkout~/www/en/ports/categories?rev=HEAD;content-type=text%2Fplain", '/usr/websites/freshports.org/dynamic/caching/tmp/categories');
-  Touch(WWWENPortsCategoriesFlag)
-  Touch(JOBWAITING)
+  Touch(config['flags']['WWWENPortsCategoriesFlag'])
+  Touch(config['flags']['JOBWAITING'])
 
 def ProcessPortsMoved():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/MOVED')
