@@ -5,7 +5,7 @@ import os
 #
 DBNAME		= 'freshports.org'
 DBUSER		= 'listening'
-SCRIPTDIR	= "/usr/local/libexect/freshports"
+SCRIPTDIR	= "/usr/local/libexec/freshports"
 
 BASEDIR         = '/var/db/freshports'
 
