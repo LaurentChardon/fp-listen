@@ -7,6 +7,8 @@
 
 import sys
 import psycopg2
+import psycopg2.extensions
+import psycopg2.extras
 import select
 
 import os	# for deleting cache files
@@ -26,14 +28,15 @@ DSN = 'host=' + config['database']['HOST'] + ' dbname=' + config['database']['DB
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
   dbh = psycopg2.connect(DSN)
-  curs = dbh.cursor()
+  curs = dbh.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
   curs.execute("SELECT id, port_id, category, port FROM cache_clearing_ports ORDER BY id")
   NumRows = curs.rowcount
   dbh.commit();
   if (NumRows > 0):
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
-    for row in curs.dictfetchall():
+    rows = curs.fetchall()
+    for row in rows:
       filenameglob = config['dirs']['PORT_CACHE_PATH'] % (row['category'], row['port'])
       syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
 
@@ -69,14 +72,15 @@ def RemoveCacheEntry():
 def ClearDateCacheEntries():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache date to remove...')
   dbh = psycopg2.connect(DSN)
-  curs = dbh.cursor()
+  curs = dbh.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
   curs.execute("SELECT id, date_to_clear FROM cache_clearing_dates ORDER BY id")
   NumRows = curs.rowcount
   dbh.commit();
   if (NumRows > 0):
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
-    for row in curs.dictfetchall():
+    rows = curs.fetchall()
+    for row in rows:
       syslog.syslog(syslog.LOG_NOTICE, 'looking at %s' % (row['date_to_clear']))
       filenameglob = config['dirs']['DATE_CACHE_PATH'] % (row['date_to_clear'].strftime('%Y'), row['date_to_clear'].strftime('%m'), row['date_to_clear'].strftime('%d'))
       syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
