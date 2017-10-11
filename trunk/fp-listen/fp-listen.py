@@ -132,7 +132,7 @@ def ProcessPortsUpdating():
 def ProcessVUXML():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/security/portaudit/vuln.xml')
 
-syslog.openlog('fp-listen')
+syslog.openlog(ident='fp-listen', facility=syslog.LOG_LOCAL3)
 
 syslog.syslog(syslog.LOG_NOTICE, 'Starting up')
 
