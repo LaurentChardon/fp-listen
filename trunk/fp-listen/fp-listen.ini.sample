@@ -7,13 +7,10 @@ DBUSER		= 'listening'
 HOST            = "localhost"
 PASSWORD        = "password"
 
-
 [dirs]
 SCRIPTDIR	= "/usr/local/libexec/freshports"
 
 BASEDIR         = '/var/db/freshports'
-
-QUEUENAME	= "freshports.org"
 
 PORT_CACHE_PATH = '%(BASEDIR)s/cache/ports/%%s/%%s/*'
 DATE_CACHE_PATH = '%(BASEDIR)s/cache/daily/%%s/%%s/%%s.*'
