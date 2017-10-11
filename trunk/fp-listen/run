@@ -5,4 +5,4 @@
 # Copyright (c) 2001-2006 DVL Software
 #
 echo starting!
-exec setuidgid dan envdir ./env ./fp-listen.py
+exec setuidgid freshports envdir ./env ./fp-listen.py

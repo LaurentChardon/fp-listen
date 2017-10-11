@@ -4,19 +4,19 @@ import os
 # configuration items
 #
 DBNAME		= 'freshports.org'
-DBUSER		= 'dan'
-SCRIPTDIR	= "/usr/websites"
+DBUSER		= 'listening'
+SCRIPTDIR	= "/usr/local/libexect/freshports"
 
-BASEDIR         = '/usr/local/www/freshports.org'
+BASEDIR         = '/var/db/freshports'
 
 HOST            = "localhost"
 PASSWORD        = "password"
 QUEUENAME	= "freshports.org"
 
-PORT_CACHE_PATH = BASEDIR + '/dynamic/caching/cache/ports/%s/%s/*'
-DATE_CACHE_PATH = BASEDIR + '/archives/%s/%s/%s.*'
+PORT_CACHE_PATH = BASEDIR + '/cache/ports/%s/%s/*'
+DATE_CACHE_PATH = BASEDIR + '/cache/daily/%s/%s/%s.*'
 
 # used for processing category updates
-DYNAMICDIR	= SCRIPTDIR + '/' + QUEUENAME + '/dynamic'
-WWWENPortsCategoriesFlag = DYNAMICDIR + '/www.en.ports.categories'
-JOBWAITING	= DYNAMICDIR + '/job_waiting'
+DYNAMICDIR	= BASEDIR + '/cache'
+WWWENPortsCategoriesFlag = DYNAMICDIR + '/signals/www.en.ports.categories'
+JOBWAITING	= DYNAMICDIR + '/signals/job_waiting'
