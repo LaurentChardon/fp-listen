@@ -6,7 +6,7 @@
 #
 
 PERL="/usr/local/bin/perl"
-LOGGER="/usr/bin/logger"
+LOGGER="/usr/bin/logger -p local3.info"
 
 SCRIPTDIR="/usr/local/libexec/freshports"
 BASEDIR="/var/db/freshports"
