@@ -80,7 +80,7 @@ while :
 				else
 					${LOGGER} -t ${LOGGERTAG} "processing $i"
 
-					./freebsd-cvs.sh $i
+					/bin/sh ./freebsd-cvs.sh $i
 
 					RESULT=$?
 					${LOGGER} -t ${LOGGERTAG} "result=$RESULT"
