@@ -1,0 +1,23 @@
+#
+# configuration items
+#
+[database]
+DBNAME		= 'freshports.org'
+DBUSER		= 'listening'
+HOST            = "localhost"
+PASSWORD        = "password"
+
+[dirs]
+SCRIPTDIR	= "/usr/local/libexec/freshports"
+
+BASEDIR         = '/var/db/freshports'
+
+PORT_CACHE_PATH = '%(BASEDIR)s/cache/ports/%%s/%%s/*'
+DATE_CACHE_PATH = '%(BASEDIR)s/cache/daily/%%s/%%s/%%s.*'
+NEWS_CACHE_DIR  = '%(BASEDIR)s/cache/new/*'
+
+[flags]
+# used for processing category updates
+DYNAMICDIR			= '%(BASEDIR)s/cache'
+WWWENPortsCategoriesFlag	= '%(DYNAMICDIR)s/signals/www.en.ports.categories'
+JOBWAITING			= '%(DYNAMICDIR)s/signals/job_waiting'
