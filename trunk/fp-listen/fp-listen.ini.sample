@@ -14,6 +14,7 @@ BASEDIR         = '/var/db/freshports'
 
 PORT_CACHE_PATH = '%(BASEDIR)s/cache/ports/%%s/%%s/*'
 DATE_CACHE_PATH = '%(BASEDIR)s/cache/daily/%%s/%%s/%%s.*'
+NEWS_CACHE_DIR  = '%(BASEDIR)s/cache/new/*'
 
 [flags]
 # used for processing category updates

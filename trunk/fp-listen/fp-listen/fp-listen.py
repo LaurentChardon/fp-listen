@@ -135,6 +135,26 @@ def ProcessPortsUpdating():
 
 def ProcessVUXML():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/security/portaudit/vuln.xml')
+  
+def ClearMiscCaches();
+  syslog.syslog(syslog.LOG_NOTICE, 'invoked: ClearMiscCaches()');
+  filenameglob = config['dirs']['NEWS_CACHE_DIR'];
+  try:
+    for filename in glob.glob(filenameglob):
+      syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+      if os.path.isfile(filename):
+        os.remove(filename)
+      else:
+        shutil.rmtree(filename)
+
+  except OSError, err:
+    if err[0] == 2:
+      pass  # no file to delete, so no worries
+          
+    else:
+      syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
+      continue
+    # end if
 
 syslog.openlog(ident='fp-listen', facility=syslog.LOG_LOCAL3)
 
@@ -169,6 +189,7 @@ while 1:
 #      syslog.syslog(syslog.LOG_NOTICE, "got %s and I need to call %s" % (notify[0], listens[notify[0]]))
       if listens.has_key(notify.channel):
         syslog.syslog(syslog.LOG_NOTICE, "found key %s" % (notify.channel));
+        clear_cache = true;
         if listens[notify.channel]   == 'listen_port':
           RemoveCacheEntry()
         elif listens[notify.channel] == 'listen_ports_moved':
@@ -182,7 +203,12 @@ while 1:
         elif listens[notify.channel] == 'listen_date_updated':
           ClearDateCacheEntries()
         else:
+          clear_cache = false;
           syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % notify.channel)
+          
+        if clear_cache:
+          ClearMiscCaches()
+
       else:
         syslog.syslog(syslog.LOG_NOTICE, 'no such key in listens array for %s!' % (notify.channel))
 
