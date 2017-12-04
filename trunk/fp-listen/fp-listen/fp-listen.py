@@ -188,7 +188,7 @@ while 1:
 #      syslog.syslog(syslog.LOG_NOTICE, "got %s and I need to call %s" % (notify[0], listens[notify[0]]))
       if listens.has_key(notify.channel):
         syslog.syslog(syslog.LOG_NOTICE, "found key %s" % (notify.channel));
-        clear_cache = true;
+        clear_cache = True;
         if listens[notify.channel]   == 'listen_port':
           RemoveCacheEntry()
         elif listens[notify.channel] == 'listen_ports_moved':
@@ -202,7 +202,7 @@ while 1:
         elif listens[notify.channel] == 'listen_date_updated':
           ClearDateCacheEntries()
         else:
-          clear_cache = false;
+          clear_cache = False;
           syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % notify.channel)
           
         if clear_cache:
