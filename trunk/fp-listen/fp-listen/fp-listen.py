@@ -136,25 +136,24 @@ def ProcessPortsUpdating():
 def ProcessVUXML():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/security/portaudit/vuln.xml')
   
-def ClearMiscCaches();
+def ClearMiscCaches():
   syslog.syslog(syslog.LOG_NOTICE, 'invoked: ClearMiscCaches()');
   filenameglob = config['dirs']['NEWS_CACHE_DIR'];
-  try:
-    for filename in glob.glob(filenameglob):
-      syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+  for filename in glob.glob(filenameglob):
+    syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+    try:
       if os.path.isfile(filename):
         os.remove(filename)
       else:
         shutil.rmtree(filename)
 
-  except OSError, err:
-    if err[0] == 2:
-      pass  # no file to delete, so no worries
-          
-    else:
-      syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
-      continue
-    # end if
+    except OSError, err:
+      if err[0] == 2:
+        pass  # no file to delete, so no worries
+
+      else:
+        syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
+        continue
 
 syslog.openlog(ident='fp-listen', facility=syslog.LOG_LOCAL3)
 
