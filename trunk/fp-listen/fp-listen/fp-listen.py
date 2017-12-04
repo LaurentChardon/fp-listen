@@ -139,6 +139,7 @@ def ProcessVUXML():
 def ClearMiscCaches():
   syslog.syslog(syslog.LOG_NOTICE, 'invoked: ClearMiscCaches()');
   filenameglob = config['dirs']['NEWS_CACHE_DIR'];
+  syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is clearing %s' % (filenameglob));
   for filename in glob.glob(filenameglob):
     syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
     try:
