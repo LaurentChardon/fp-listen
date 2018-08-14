@@ -25,7 +25,12 @@ check_for_jobs() {
 	then
 		${LOGGER} -t ${LOGGERTAG} 'yes, there is a job waiting'
 		${PERL} ./job-waiting.pl
-
+		if [ $? -eq 0 ]
+		then
+			${LOGGER} -t ${LOGGERTAG} "job-waiting.pl finishes normally"
+		else
+			${LOGGER} -t ${LOGGERTAG} "FATAL job-waiting.pl finished with an error"
+		fi
 		rm ${FLAG}
 	fi
 }
