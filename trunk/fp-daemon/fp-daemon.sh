@@ -11,6 +11,13 @@
 
 LOGGERTAG='fp-daemon'
 
+CP='/bin/cp'
+
+# we do not use -i because that would fail when re re-run a commit
+MV='/bin/mv'
+
+RM='/bin/rm'
+
 #
 # sanity checking upon startup
 #
@@ -83,24 +90,42 @@ while :
 					${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 					break
 				else
-					${LOGGER} -t ${LOGGERTAG} "processing $i"
+					${LOGGER} -t ${LOGGERTAG} "processing ${i}"
 
-					/bin/sh ./freebsd-cvs.sh $i
+					/bin/sh ./freebsd-cvs.sh ${i}
 
 					RESULT=$?
 					${LOGGER} -t ${LOGGERTAG} "result=$RESULT"
 					basename=`basename ${i}`
 					if [ $RESULT -eq 0 ]
 					then
-						mv ${i} ${BASEDIR}/message-queues/recent/${basename}.raw
+						${LOGGER} -t ${LOGGERTAG} - "'`ls -l ${i}`'"
+						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld /var/db/ingress/message-queues/incoming`'"
+						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld ${BASEDIR}/message-queues/recent/`'"
+						${CP} ${i} ${BASEDIR}/message-queues/recent/${basename}.raw
+						# using mv caused: /usr/local/bin/readproctitle service errors: ...message-queues/recent/2019.07.15.15.42.07.48391.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.43.31.53460.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.45.39.56551.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\n
+						# even when using this example:
+						# [dan@dev-ingress01:~] $ ls -l ~ingress/message-queues/ ~freshports/message-queues/
+						# /var/db/freshports/message-queues/:
+						# total 248
+						# drwxr-xr-x  18 freshports  freshports   18 Jul  2 03:16 archive
+						# 
+						# drwxr-xr-x  10 freshports  freshports   18 Jun 10 22:03 retry
+						# 
+						# /var/db/ingress/message-queues/:
+						# total 3
+						# drwxr-xr-x  2 root     ingress     10 Mar 20 13:53 DUPS
+						# drwxrwxr-x  2 ingress  freshports   2 Jul 15 15:29 incoming
+						# 
+						${RM} ${i}
 					else
-						${LOGGER} -t ${LOGGERTAG} "$i fails...."
+						${LOGGER} -t ${LOGGERTAG} "${i} fails...."
 
 						# move the original email to the retry directory
-						mv $i ${BASEDIR}/message-queues/retry/
+						${MV} ${i} ${BASEDIR}/message-queues/retry/
 
 						# and any other files as well
-						mv  ${BASEDIR}/message-queues/recent/${basename}.* ${BASEDIR}/message-queues/retry/
+						${MV}  ${BASEDIR}/message-queues/recent/${basename}.* ${BASEDIR}/message-queues/retry/
 					fi
 
 					check_for_jobs
