@@ -102,7 +102,10 @@ while :
 						${LOGGER} -t ${LOGGERTAG} - "'`ls -l ${i}`'"
 						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld /var/db/ingress/message-queues/incoming`'"
 						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld ${BASEDIR}/message-queues/recent/`'"
-						${CP} ${i} ${BASEDIR}/message-queues/recent/${basename}.raw
+
+						# use -p to preserve mtime
+						${CP} -p ${i} ${BASEDIR}/message-queues/recent/${basename}.raw
+
 						# using mv caused: /usr/local/bin/readproctitle service errors: ...message-queues/recent/2019.07.15.15.42.07.48391.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.43.31.53460.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.45.39.56551.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\n
 						# even when using this example:
 						# [dan@dev-ingress01:~] $ ls -l ~ingress/message-queues/ ~freshports/message-queues/
