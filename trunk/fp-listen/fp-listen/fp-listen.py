@@ -48,7 +48,9 @@ def RemoveCacheEntry():
           else:
             shutil.rmtree(filename)
 
-      except OSError, err:
+      except OSError:
+        pass;
+      except err:
         if err[0] == 2:
           pass  # no file to delete, so no worries
           
@@ -93,7 +95,9 @@ def ClearDateCacheEntries():
           else:
             shutil.rmtree(filename)
 
-      except OSError, err:
+      except OSError:
+        pass;
+      except err:
         if err[0] == 2:
           pass  # no file to delete, so no worries
           
@@ -148,7 +152,9 @@ def ClearMiscCaches():
       else:
         shutil.rmtree(filename)
 
-    except OSError, err:
+    except OSError:
+      pass;
+    except err:
       if err[0] == 2:
         pass  # no file to delete, so no worries
 
@@ -168,12 +174,12 @@ curs = conn.cursor()
 curs.execute("SELECT name, script_name FROM listen_for ORDER BY id")
 listens_for = curs.fetchall()
 
-listens = dict()
-print "These are the (event name, script name) pairs we are ready for:"
+listens = dict();
+print("These are the (event name, script name) pairs we are ready for:")
 for listen in listens_for:
   curs.execute("LISTEN %s" % listen[0])
   listens[listen[0]] = listen[1]
-  print "('%s', '%s')" % (listen[0], listen[1])
+  print("('%s', '%s')" % (listen[0], listen[1]))
 
 while 1:
   if select.select([conn],[],[],5)==([],[],[]):
