@@ -158,7 +158,7 @@ def ClearMiscCaches():
 
 syslog.openlog(ident='fp-listen', facility=syslog.LOG_LOCAL3)
 
-syslog.syslog(syslog.LOG_NOTICE, 'Starting up')
+syslog.syslog(syslog.LOG_NOTICE, 'Starting up - this should not occur often')
 
 conn = psycopg2.connect(DSN)
 conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
@@ -187,20 +187,26 @@ while 1:
       # in real life, do something with each...
       syslog.syslog(syslog.LOG_NOTICE, "Got NOTIFY: %d, %s, %s" % (notify.pid, notify.channel, notify.payload));
 #      syslog.syslog(syslog.LOG_NOTICE, "got %s and I need to call %s" % (notify[0], listens[notify[0]]))
-      if listens.has_key(notify.channel):
+      if notify.channel in listens:
         syslog.syslog(syslog.LOG_NOTICE, "found key %s" % (notify.channel));
         clear_cache = True;
         if listens[notify.channel]   == 'listen_port':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking RemoveCacheEntry()");
           RemoveCacheEntry()
         elif listens[notify.channel] == 'listen_ports_moved':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking ProcessPortsMoved()");
           ProcessPortsMoved()
         elif listens[notify.channel] == 'listen_ports_updating':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking ProcessPortsUpdating()");
           ProcessPortsUpdating()
         elif listens[notify.channel] == 'listen_vuxml':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking ProcessVUXML()");
           ProcessVUXML()
         elif listens[notify.channel] == 'listen_category_new':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking ProcessCategoryNew()");
           ProcessCategoryNew()
         elif listens[notify.channel] == 'listen_date_updated':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking ClearDateCacheEntries()");
           ClearDateCacheEntries()
         else:
           clear_cache = False;
