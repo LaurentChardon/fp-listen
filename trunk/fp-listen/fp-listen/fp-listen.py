@@ -18,7 +18,10 @@ import shutil	# for rmtree
 
 import urllib	# for fetching files
 
-import configparser
+import configparser # for fp-listen.ini parsing
+
+from pathlib import Path # for removing files from cache dir
+
 
 config = configparser.ConfigParser()
 config.read('/usr/local/etc/freshports/fp-listen.ini')
@@ -48,15 +51,14 @@ def RemoveCacheEntry():
           else:
             shutil.rmtree(filename)
 
-      except (OSError, err):
-        if err[0] == 2:
-          pass  # no file to delete, so no worries
-          
-        else:
-          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
-          continue
-        # end if
-        
+      except FileNotFoundError:
+        syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
+
+      except:
+        syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
+        # if we can't delete it, do not remove it from cache
+        continue
+
       syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_ports WHERE id = %d" % (row['id']))
       curs.execute("DELETE FROM cache_clearing_ports WHERE id = %d" % (row['id']))
       dbh.commit()
@@ -93,15 +95,14 @@ def ClearDateCacheEntries():
           else:
             shutil.rmtree(filename)
 
-      except (OSError, err):
-        if err[0] == 2:
-          pass  # no file to delete, so no worries
-          
-        else:
-          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
-          continue
-        # end if
-        
+      except FileNotFoundError:
+        syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
+        pass  # no file to delete, so no worries
+
+      except:
+        syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
+        continue
+
       syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_dates WHERE id = %d" % (row['id']))
       curs.execute("DELETE FROM cache_clearing_dates WHERE id = %d" % (row['id']))
       dbh.commit()
@@ -138,8 +139,34 @@ def ProcessVUXML():
   
 def ClearMiscCaches():
   syslog.syslog(syslog.LOG_NOTICE, 'invoked: ClearMiscCaches()');
+  
+  filenameglob = config['dirs']['NEWS_CACHE_PATH'];
+  syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is clearing %s' % (filenameglob));
+
+  filenameglob = config['dirs']['NEWS_CACHE_PATH'];
+  syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is clearing %s' % (filenameglob));
+
+  for filename in Path(filenameglob).iterdir():
+    syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+    try:
+      if Path(filename).is_file():
+        Path(filename).unlink()
+      else:
+        shutil.rmtree(filename)
+    
+    except FileNotFoundError:
+      syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
+      pass  # no file to delete, so no worries
+
+    except:
+      syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
+      continue
+
+           
+
   filenameglob = config['dirs']['NEWS_CACHE_DIR'];
   syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is clearing %s' % (filenameglob));
+
   for filename in glob.glob(filenameglob):
     syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
     try:
@@ -148,12 +175,12 @@ def ClearMiscCaches():
       else:
         shutil.rmtree(filename)
 
-    except (OSError, err):
-      if err[0] == 2:
+    except FileNotFoundError:
+        syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
         pass  # no file to delete, so no worries
 
-      else:
-        syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (err))
+    except:
+        syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
         continue
 
 syslog.openlog(ident='fp-listen', facility=syslog.LOG_LOCAL3)
@@ -213,6 +240,7 @@ while 1:
           syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % notify.channel)
           
         if clear_cache:
+          syslog.syslog(syslog.LOG_NOTICE, "invoking ClearMiscCaches()");
           ClearMiscCaches()
 
       else:
