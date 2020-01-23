@@ -140,11 +140,11 @@ def ProcessVUXML():
 def ClearMiscCaches():
   syslog.syslog(syslog.LOG_NOTICE, 'invoked: ClearMiscCaches()');
   
-  filenameglob = config['dirs']['NEWS_CACHE_DIR'];
-  syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is clearing %s' % (filenameglob));
+  news_cache_dir = config['dirs']['NEWS_CACHE_DIR'];
+  syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is clearing out entries in %s' % (news_cache_dir));
 
-  for filename in Path(filenameglob).iterdir():
-    syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+  for filename in Path(news_cache_dir).iterdir():
+    syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is removing %s' % (filename))
     try:
       if Path(filename).is_file():
         Path(filename).unlink()
@@ -159,26 +159,9 @@ def ClearMiscCaches():
       syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
       continue
 
-           
+  syslog.syslog(syslog.LOG_NOTICE, 'finished: ClearMiscCaches()');
+         
 
-  filenameglob = config['dirs']['NEWS_CACHE_DIR'];
-  syslog.syslog(syslog.LOG_NOTICE, 'ClearMiscCaches() is clearing %s' % (filenameglob));
-
-  for filename in glob.glob(filenameglob):
-    syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
-    try:
-      if os.path.isfile(filename):
-        os.remove(filename)
-      else:
-        shutil.rmtree(filename)
-
-    except FileNotFoundError:
-        syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
-        pass  # no file to delete, so no worries
-
-    except:
-        syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
-        continue
 
 syslog.openlog(ident='fp-listen', facility=syslog.LOG_LOCAL3)
 
