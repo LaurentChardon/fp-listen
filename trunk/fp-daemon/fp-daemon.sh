@@ -136,7 +136,6 @@ while :
 			done
 		else
 			check_for_jobs
-			${LOGGER} -t ${LOGGERTAG} "nothing found ${INCOMING}"
 		fi
 	fi
 	sleep 3
