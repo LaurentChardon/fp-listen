@@ -71,6 +71,9 @@ def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'finished')
   return NumRows
 
+def PackagesCacheClear():
+  # here, we clear out /var/db/freshports/cache/packages
+
 def ClearDateCacheEntries():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache date to remove...')
   dbh = psycopg2.connect(DSN)
@@ -215,6 +218,8 @@ while 1:
         elif listens[notify.channel] == 'listen_date_updated':
           syslog.syslog(syslog.LOG_NOTICE, "invoking ClearDateCacheEntries()");
           ClearDateCacheEntries()
+        elif listens[notify.channel] == 'packages_cache_clear':
+          PackagesCacheClear()
         else:
           clear_cache = False;
           syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % notify.channel)
