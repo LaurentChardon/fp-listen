@@ -12,9 +12,13 @@ SCRIPTDIR	= '/usr/local/libexec/freshports'
 
 BASEDIR         = /var/db/freshports
 
-PORT_CACHE_PATH = %(BASEDIR)s/cache/ports/%%s/%%s/*
-DATE_CACHE_PATH = %(BASEDIR)s/cache/daily/%%s/%%s/%%s.*
-NEWS_CACHE_DIR  = %(BASEDIR)s/cache/news/*
+CATEGORY_CACHE_PATH = %(BASEDIR)s/cache/categories/%%s/*
+PORT_CACHE_PATH     = %(BASEDIR)s/cache/ports/%%s/%%s/*
+DATE_CACHE_PATH     = %(BASEDIR)s/cache/daily/%%s/%%s/%%s.*
+NEWS_CACHE_DIR      = %(BASEDIR)s/cache/news/*
+
+# this is the name of the zfs filesystem to rollback, including the snapshot name
+PKG_ZFS_SNAPSHOT    = system/data/freshports-cache-packages/dev-nginx01@empty
 
 [flags]
 # used for processing category updates

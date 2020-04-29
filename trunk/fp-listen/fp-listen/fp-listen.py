@@ -22,7 +22,6 @@ import configparser # for fp-listen.ini parsing
 
 from pathlib import Path # for removing files from cache dir
 
-
 config = configparser.ConfigParser()
 config.read('/usr/local/etc/freshports/fp-listen.ini')
 
@@ -40,9 +39,33 @@ def RemoveCacheEntry():
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     rows = curs.fetchall()
     for row in rows:
+      #
+      # first, we clear the port cache
+      #
       filenameglob = config['dirs']['PORT_CACHE_PATH'] % (row['category'], row['port'])
       syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
 
+      try:
+        for filename in glob.glob(filenameglob):
+          syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+          if os.path.isfile(filename):
+            os.remove(filename)
+          else:
+            shutil.rmtree(filename)
+
+      except FileNotFoundError:
+        syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
+
+      except:
+        syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
+        # if we can't delete it, do not remove it from cache
+        continue
+
+      #
+      # then we delete the category cache
+      #
+      filenameglob = config['dirs']['CATEGORY_CACHE_PATH'] % (row['category'])
+      syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
       try:
         for filename in glob.glob(filenameglob):
           syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
@@ -73,7 +96,17 @@ def RemoveCacheEntry():
 
 def PackagesCacheClear():
   # here, we clear out /var/db/freshports/cache/packages
-
+  PKG_ZFS_SNAPSHOT = config['dirs']['PKG_ZFS_SNAPSHOT']
+  syslog.syslog(syslog.LOG_NOTICE, "Time to rollback %s" % PKG_ZFS_SNAPSHOT);
+  try:
+    # this is the name of the zfs filesystem to rollback, including the snapshot name
+    os.system('zfs rollback ' + PKG_ZFS_SNAPSHOT)
+    
+  except:
+    syslog.syslog(syslog.LOG_CRIT, 'ERROR: while in PackagesCacheClear().  Error message is %s' % (sys.exc_info()[0]))
+  
+  syslog.syslog(syslog.LOG_NOTICE, "Done with PackagesCacheClear()");
+  
 def ClearDateCacheEntries():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache date to remove...')
   dbh = psycopg2.connect(DSN)
@@ -179,28 +212,29 @@ curs.execute("SELECT name, script_name FROM listen_for ORDER BY id")
 listens_for = curs.fetchall()
 
 listens = dict()
-print ("These are the (event name, script name) pairs we are ready for:")
+syslog.syslog(syslog.LOG_NOTICE, "These are the (event name, script name) pairs we are ready for:")
 for listen in listens_for:
   curs.execute("LISTEN %s" % listen[0])
   listens[listen[0]] = listen[1]
-  print ("('%s', '%s')" % (listen[0], listen[1]))
+  syslog.syslog(syslog.LOG_NOTICE, "('%s', '%s')" % (listen[0], listen[1]))
 
 while 1:
   if select.select([conn],[],[],5)==([],[],[]):
     syslog.syslog(syslog.LOG_NOTICE, 'timeout! *************')
   else:
     conn.poll()
-    #curs.execute("SELECT 1")
     syslog.syslog(syslog.LOG_NOTICE, 'Just woke up! *************')
     while conn.notifies:
       notify = conn.notifies.pop(0);
       # in real life, do something with each...
-      syslog.syslog(syslog.LOG_NOTICE, "Got NOTIFY: %d, %s, %s" % (notify.pid, notify.channel, notify.payload));
-#      syslog.syslog(syslog.LOG_NOTICE, "got %s and I need to call %s" % (notify[0], listens[notify[0]]))
+      syslog.syslog(syslog.LOG_NOTICE, "Got NOTIFY: pid='%d', channel='%s', payload='%s'" % (notify.pid, notify.channel, notify.payload));
       if notify.channel in listens:
+      
         syslog.syslog(syslog.LOG_NOTICE, "found key %s" % (notify.channel));
+
         clear_cache = True;
-        if listens[notify.channel]   == 'listen_port':
+
+        if   listens[notify.channel] == 'listen_port':
           syslog.syslog(syslog.LOG_NOTICE, "invoking RemoveCacheEntry()");
           RemoveCacheEntry()
         elif listens[notify.channel] == 'listen_ports_moved':
@@ -218,11 +252,16 @@ while 1:
         elif listens[notify.channel] == 'listen_date_updated':
           syslog.syslog(syslog.LOG_NOTICE, "invoking ClearDateCacheEntries()");
           ClearDateCacheEntries()
-        elif listens[notify.channel] == 'packages_cache_clear':
+        elif listens[notify.channel] == 'ClearPackagesCache':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking PackagesCacheClear()");
           PackagesCacheClear()
+          # at the time of writing, there was no reason to ClearMiscCaches() when
+          # new packages arrive
+          clear_cache = False;
         else:
           clear_cache = False;
           syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % notify.channel)
+          syslog.syslog(syslog.LOG_ERR, "listens[notify.channel='%s']" % listens[notify.channel])
           
         if clear_cache:
           syslog.syslog(syslog.LOG_NOTICE, "invoking ClearMiscCaches()");
