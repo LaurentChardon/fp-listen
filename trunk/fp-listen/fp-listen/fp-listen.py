@@ -100,13 +100,16 @@ def PackagesCacheClear():
   syslog.syslog(syslog.LOG_NOTICE, "Time to rollback %s" % PKG_ZFS_SNAPSHOT);
   try:
     # this is the name of the zfs filesystem to rollback, including the snapshot name
-    os.system('zfs rollback ' + PKG_ZFS_SNAPSHOT)
-    
+    if os.system('zfs rollback ' + PKG_ZFS_SNAPSHOT):
+      syslog.syslog(syslog.LOG_CRIT, 'ERROR: while in PackagesCacheClear(). zfs rollback failed.')
+    else:
+      syslog.syslog(syslog.LOG_NOTICE, 'zfs rollback succeeded.')
+
   except:
     syslog.syslog(syslog.LOG_CRIT, 'ERROR: while in PackagesCacheClear().  Error message is %s' % (sys.exc_info()[0]))
-  
+
   syslog.syslog(syslog.LOG_NOTICE, "Done with PackagesCacheClear()");
-  
+
 def ClearDateCacheEntries():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache date to remove...')
   dbh = psycopg2.connect(DSN)
