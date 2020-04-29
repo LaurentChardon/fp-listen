@@ -252,7 +252,7 @@ while 1:
         elif listens[notify.channel] == 'listen_date_updated':
           syslog.syslog(syslog.LOG_NOTICE, "invoking ClearDateCacheEntries()");
           ClearDateCacheEntries()
-        elif listens[notify.channel] == 'ClearPackagesCache':
+        elif listens[notify.channel] == 'listen_packages_imported':
           syslog.syslog(syslog.LOG_NOTICE, "invoking PackagesCacheClear()");
           PackagesCacheClear()
           # at the time of writing, there was no reason to ClearMiscCaches() when
