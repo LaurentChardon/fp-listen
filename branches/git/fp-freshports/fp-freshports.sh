@@ -7,7 +7,7 @@
 #
 # include our local parameters
 
-. /usr/local/etc/freshports/daemon-config.sh
+. /usr/local/etc/freshports/fp-freshports.sh
 
 LOGGERTAG='fp-freshports'
 
