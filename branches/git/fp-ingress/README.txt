@@ -1,14 +1,21 @@
-#
-# $Id: README.txt,v 1.4 2006-01-08 02:46:39 dan Exp $
-#
-# Copyright (c) 2001-2003 DVL Software
-#
+From the original svn cp of this directory:
 
-Things to change before running:
+Copy this over for use as an ingress daemon:
 
-run      - name of user under which script will run
-env/HOME - home directory of user
+* receives notice of new commits via signals
+* creates XML
+* moves XMl into ~ingress/message-queues/incoming directory
 
-This directory should be accessible by the above mentioned user.
+Potential signals
 
-e.g. chown dan:dan .
+* commits waiting
+  * which repo?
+  * commit hash?
+
+* run single commt
+  * which repo?
+  * commit hash?
+
+* hooks - I imagine hooks will be intercepted externally and signals raised
+
+* email - If commit emails are implemented, that could also raise a signal

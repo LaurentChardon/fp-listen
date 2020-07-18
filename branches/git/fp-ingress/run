@@ -4,5 +4,5 @@
 #
 # Copyright (c) 2001-2004 DVL Software
 #
-echo starting!
-exec setuidgid freshports envdir ./env sh ./fp-daemon.sh
+echo starting fp-ingress.sh
+exec setuidgid ingress envdir ./env sh ./fp-ingress.sh
