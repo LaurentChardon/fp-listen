@@ -7,7 +7,7 @@
 #
 # include our local parameters
 
-. config.sh
+. /usr/local/etc/freshports/daemon-config.sh
 
 LOGGERTAG='fp-freshports'
 
@@ -29,7 +29,7 @@ check_for_jobs() {
 	# This flag file is only set by a job run by this script.
 	# A race condition should never arise.
 	#
-	FLAG="${FLAGDIR}/job_waiting"
+	FLAG="${FRESHPORTS_FLAGDIR}/job_waiting"
 	if [ -f ${FLAG} ]
 	then
 		${LOGGER} -t ${LOGGERTAG} 'yes, there is a job waiting'
@@ -52,21 +52,15 @@ then
 	exit
 fi
 
-if [ ! -d ${MSGDIR}/incoming ]
+if [ ! -d ${FRESHPORTS_MSGDIR}/recent ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${MSGDIR}/incoming"
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${FRESHPORTS_MSGDIR}/recent/"
 	exit
 fi
 
-if [ ! -d ${MSGDIR}/recent ]
+if [ ! -d ${FRESHPORTS_MSGDIR}/retry ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${MSGDIR}/recent/"
-	exit
-fi
-
-if [ ! -d ${MSGDIR}/retry ]
-then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${MSGDIR}/retry/"
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${FRESHPORTS_MSGDIR}/retry/"
 	exit	
 fi
 
@@ -74,7 +68,7 @@ while :
 	do
 	cd ${SCRIPTDIR}
 
-	OUTPUT="${MSGDIR}/recent"
+	OUTPUT="${FRESHPORTS_MSGDIR}/recent"
 	INCOMING=${INGRESS_MSGDIR}/incoming
 	FILES=`echo ${INCOMING}/*`
 
@@ -130,8 +124,8 @@ while :
 					then
 						# the output of the command is enclosed in "''" in case the ls output starts with a - and would therefore be interpreted as an argument
  						${LOGGER} -t ${LOGGERTAG} "'`ls -l ${file}`'"
-						${LOGGER} -t ${LOGGERTAG} "'`ls -ld ${MSGDIR}/incoming/`'"
-						${LOGGER} -t ${LOGGERTAG} "'`ls -ld ${MSGDIR}/recent/`'"
+						${LOGGER} -t ${LOGGERTAG} "'`ls -ld ${FRESHPORTS_MSGDIR}/incoming/`'"
+						${LOGGER} -t ${LOGGERTAG} "'`ls -ld ${FRESHPORTS_MSGDIR}/recent/`'"
 
 						# use -p to preserve mtime
 						${CP} -p ${file} ${OUTPUT}
@@ -155,10 +149,10 @@ while :
 						${LOGGER} -t ${LOGGERTAG} "${file} fails...."
 
 						# move the original email to the retry directory
-						${MV} ${file} ${MSGDIR}/retry/
+						${MV} ${file} ${FRESHPORTS_MSGDIR}/retry/
 
 						# and any other files as well
-						${MV}  ${MSGDIR}/recent/${filename}.* ${MSGDIR}/retry/
+						${MV}  ${FRESHPORTS_MSGDIR}/recent/${filename}.* ${FRESHPORTS_MSGDIR}/retry/
 					fi
 
 					check_for_jobs
