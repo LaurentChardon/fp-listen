@@ -9,7 +9,7 @@
 
 . config.sh
 
-LOGGERTAG='fp-daemon-git'
+LOGGERTAG='fp-freshports'
 
 CP='/bin/cp'
 
@@ -17,6 +17,8 @@ CP='/bin/cp'
 MV='/bin/mv'
 
 RM='/bin/rm'
+
+PERL='/usr/local/bin/perl'
 
 #
 # sanity checking upon startup
@@ -31,12 +33,12 @@ check_for_jobs() {
 	if [ -f ${FLAG} ]
 	then
 		${LOGGER} -t ${LOGGERTAG} 'yes, there is a job waiting'
-		${PERL} ./job-waiting-git.pl
+		${PERL} ./job-waiting.pl
 		if [ $? -eq 0 ]
 		then
-			${LOGGER} -t ${LOGGERTAG} "job-waiting-git.pl finishes normally"
+			${LOGGER} -t ${LOGGERTAG} "job-waiting.pl finishes normally"
 		else
-			${LOGGER} -t ${LOGGERTAG} "FATAL job-waiting-git.pl finished with an error"
+			${LOGGER} -t ${LOGGERTAG} "FATAL job-waiting.pl finished with an error"
 		fi
 		rm ${FLAG}
 	fi
@@ -73,7 +75,7 @@ while :
 	cd ${SCRIPTDIR}
 
 	OUTPUT="${MSGDIR}/recent"
-	INCOMING=${MSGDIR}/incoming
+	INCOMING=${INGRESS_MSGDIR}/incoming
 	FILES=`echo ${INCOMING}/*`
 
 	if [ -e 'OFFLINE' ]
@@ -105,8 +107,8 @@ while :
 
 					${LOGGER} -t ${LOGGERTAG} "loading that XML into the database via load_xml_into_db_git.pl"
 
-					${LOGGER} -t ${LOGGERTAG} /usr/local/bin/perl ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} ${OUTPUT}/${filename}.loading ${OUTPUT}/${filename}.errors
-					/usr/local/bin/perl ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} > ${OUTPUT}/${filename}.loading 2>${OUTPUT}/${filename}.errors
+					${LOGGER} -t ${LOGGERTAG} ${PERL} ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} ${OUTPUT}/${filename}.loading ${OUTPUT}/${filename}.errors
+					${PERL} ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} > ${OUTPUT}/${filename}.loading 2>${OUTPUT}/${filename}.errors
 					RESULT=$?
 
 					if [ -f ${OUTPUT}/${filename}.errors ]
