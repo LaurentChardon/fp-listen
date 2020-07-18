@@ -12,7 +12,7 @@ id=`id -p`
 /usr/bin/logger -p local3.info $id
 
 
-. config.sh
+. /usr/local/etc/freshports/daemon-config.sh
 
 
 LOGGERTAG='fp-ingress'
