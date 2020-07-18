@@ -9,7 +9,7 @@
 
 . config.sh
 
-LOGGERTAG='fp-daemon'
+LOGGERTAG='fp-daemon-git'
 
 CP='/bin/cp'
 
@@ -31,12 +31,12 @@ check_for_jobs() {
 	if [ -f ${FLAG} ]
 	then
 		${LOGGER} -t ${LOGGERTAG} 'yes, there is a job waiting'
-		${PERL} ./job-waiting.pl
+		${PERL} ./job-waiting-git.pl
 		if [ $? -eq 0 ]
 		then
-			${LOGGER} -t ${LOGGERTAG} "job-waiting.pl finishes normally"
+			${LOGGER} -t ${LOGGERTAG} "job-waiting-git.pl finishes normally"
 		else
-			${LOGGER} -t ${LOGGERTAG} "FATAL job-waiting.pl finished with an error"
+			${LOGGER} -t ${LOGGERTAG} "FATAL job-waiting-git.pl finished with an error"
 		fi
 		rm ${FLAG}
 	fi
@@ -50,29 +50,30 @@ then
 	exit
 fi
 
-if [ ! -d ${INGRESSDIR}/message-queues/incoming ]
+if [ ! -d ${MSGDIR}/incoming ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${INGRESSDIR}/message-queues/incoming"
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${MSGDIR}/incoming"
 	exit
 fi
 
-if [ ! -d ${BASEDIR}/message-queues/recent/ ]
+if [ ! -d ${MSGDIR}/recent ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/message-queues/recent/"
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${MSGDIR}/recent/"
 	exit
 fi
 
-if [ ! -d ${BASEDIR}/message-queues/retry/ ]
+if [ ! -d ${MSGDIR}/retry ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/message-queues/retry/"
-	exit
+	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${MSGDIR}/retry/"
+	exit	
 fi
 
 while :
 	do
 	cd ${SCRIPTDIR}
 
-	INCOMING=${INGRESSDIR}/message-queues/incoming
+	OUTPUT="${MSGDIR}/recent"
+	INCOMING=${MSGDIR}/incoming
 	FILES=`echo ${INCOMING}/*`
 
 	if [ -e 'OFFLINE' ]
@@ -80,31 +81,58 @@ while :
 		${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 		break
 	else
+		# id the list of files is not just the directory name...
 		if [ "$FILES" != "${INCOMING}/*" ]
 		then
 			${LOGGER} -t ${LOGGERTAG} "found stuff in ${INCOMING}"
-			for i in $FILES
+			for file in $FILES
 			do
 				if [ -e 'OFFLINE' ]
 				then
 					${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 					break
 				else
-					${LOGGER} -t ${LOGGERTAG} "processing ${i}"
+					# file is a fully qualfied pathname, not relative.
+					# e.g. /var/db/freshports/message-queues/incoming/2020.07.02.13.35.18.000000.1b49ab9b7bb15abe91a9e0610fa676053f8fe021.xml
+					${LOGGER} -t ${LOGGERTAG} "processing ${file}"
 
-					/bin/sh ./freebsd-cvs.sh ${i}
+					# e.g. 2020.07.02.13.35.18.000000.1b49ab9b7bb15abe91a9e0610fa676053f8fe021.xml
+					filename=`basename ${file}`
 
+					#
+					# load the XML into the database
+					#
+
+					${LOGGER} -t ${LOGGERTAG} "loading that XML into the database via load_xml_into_db_git.pl"
+
+					${LOGGER} -t ${LOGGERTAG} /usr/local/bin/perl ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} ${OUTPUT}/${filename}.loading ${OUTPUT}/${filename}.errors
+					/usr/local/bin/perl ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} > ${OUTPUT}/${filename}.loading 2>${OUTPUT}/${filename}.errors
 					RESULT=$?
+
+					if [ -f ${OUTPUT}/${filename}.errors ]
+					then
+						#  found errors
+						if [ -s ${OUTPUT}/${filename}.errors ]
+						then
+							# do nothing, leave that file there.
+						else
+							rm ${OUTPUT}/${filename}.errors
+						fi
+					fi
+
+					${LOGGER} -t ${LOGGERTAG} "XML loading finished"
+
 					${LOGGER} -t ${LOGGERTAG} "result=$RESULT"
-					basename=`basename ${i}`
+					basename=`basename ${file}`
 					if [ $RESULT -eq 0 ]
 					then
-						${LOGGER} -t ${LOGGERTAG} - "'`ls -l ${i}`'"
-						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld /var/db/ingress/message-queues/incoming`'"
-						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld ${BASEDIR}/message-queues/recent/`'"
+						# the output of the command is enclosed in "''" in case the ls output starts with a - and would therefore be interpreted as an argument
+ 						${LOGGER} -t ${LOGGERTAG} "'`ls -l ${file}`'"
+						${LOGGER} -t ${LOGGERTAG} "'`ls -ld ${MSGDIR}/incoming/`'"
+						${LOGGER} -t ${LOGGERTAG} "'`ls -ld ${MSGDIR}/recent/`'"
 
 						# use -p to preserve mtime
-						${CP} -p ${i} ${BASEDIR}/message-queues/recent/${basename}.raw
+						${CP} -p ${file} ${OUTPUT}
 
 						# using mv caused: /usr/local/bin/readproctitle service errors: ...message-queues/recent/2019.07.15.15.42.07.48391.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.43.31.53460.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.45.39.56551.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\n
 						# even when using this example:
@@ -120,15 +148,15 @@ while :
 						# drwxr-xr-x  2 root     ingress     10 Mar 20 13:53 DUPS
 						# drwxrwxr-x  2 ingress  freshports   2 Jul 15 15:29 incoming
 						# 
-						${RM} ${i}
+						${RM} ${file}
 					else
-						${LOGGER} -t ${LOGGERTAG} "${i} fails...."
+						${LOGGER} -t ${LOGGERTAG} "${file} fails...."
 
 						# move the original email to the retry directory
-						${MV} ${i} ${BASEDIR}/message-queues/retry/
+						${MV} ${file} ${MSGDIR}/retry/
 
 						# and any other files as well
-						${MV}  ${BASEDIR}/message-queues/recent/${basename}.* ${BASEDIR}/message-queues/retry/
+						${MV}  ${MSGDIR}/recent/${filename}.* ${MSGDIR}/retry/
 					fi
 
 					check_for_jobs
