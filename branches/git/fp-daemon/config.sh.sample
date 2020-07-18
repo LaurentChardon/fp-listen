@@ -10,5 +10,5 @@ LOGGER="/usr/bin/logger -p local3.info"
 
 SCRIPTDIR="/usr/local/libexec/freshports"
 BASEDIR="/var/db/freshports"
-INGRESSDIR="/var/db/ingress"
+MSGDIR="${BASEDIR}/message-queues"
 FLAGDIR="${BASEDIR}/signals"
