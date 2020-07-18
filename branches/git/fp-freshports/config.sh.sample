@@ -11,11 +11,13 @@ LOGGER="/usr/bin/logger -p local3.info"
 SCRIPTDIR="/usr/local/libexec/freshports"
 
 # for freshports user
-BASEDIR="/var/db/freshports"
-MSGDIR="${BASEDIR}/message-queues"
+FRESHPORTS_BASEDIR="/var/db/freshports"
+FRESHPORTS_MSGDIR="${BASEDIR}/message-queues"
 
-FLAGDIR="${BASEDIR}/signals"
+FRESHPORTS_FLAGDIR="${FRESHPORTS_MSGDIR}/signals"
 
 # for ingress user
 INGRESS_BASEDIR="/var/db/ingress"
 INGRESS_MSGDIR="${INGRESS_BASEDIR}/message-queues"
+
+INGRESS_FLAGDIR="${INGRESS_BASEDIR}/signals"
