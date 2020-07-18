@@ -55,8 +55,6 @@ check_for_jobs() {
 }
 
 ${LOGGER} -t ${LOGGERTAG} "starting up!"
-id=`id -p`
-${LOGGER} -t ${LOGGERTAG} $id
 
 if [ ! -d ${SCRIPTDIR} ]
 then
