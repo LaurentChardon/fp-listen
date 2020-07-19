@@ -1,3 +1,12 @@
+Copyright Dan Langille - dan@langille.org
+
+The configuration file is /usr/local/etc/freshports/fp-ingress.sh
+
+Yes, the script and its configuration file have the same name.
+
+This script listens for signals, invokes job-waiting.pl, which then takes the
+appropriate action.
+
 From the original svn cp of this directory:
 
 Copy this over for use as an ingress daemon:

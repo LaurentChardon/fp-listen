@@ -39,32 +39,32 @@ check_for_jobs() {
 	if [ -f ${FLAG} ]
 	then
 		cd ${SCRIPTDIR}
-		${LOGGER} -t ${LOGGERTAG} "yes, there is a job waiting"
-		${LOGGER} -t ${LOGGERTAG} "running ${PERL} ./job-waiting.pl"
-		${LOGGER} -t ${LOGGERTAG} "from directory  ${SCRIPTDIR}"
+		echo "yes, there is a job waiting"
+		echo "running ${PERL} ./job-waiting.pl"
+		echo "from directory  ${SCRIPTDIR}"
 		ls -l ./job-waiting.pl
 		${PERL} ./job-waiting.pl
 		if [ $? -eq 0 ]
 		then
-			${LOGGER} -t ${LOGGERTAG} "job-waiting.pl finishes normally"
+			echo "job-waiting.pl finishes normally"
 		else
-			${LOGGER} -t ${LOGGERTAG} "FATAL job-waiting.pl finished with an error: $?"
+			echo "FATAL job-waiting.pl finished with an error: $?"
 		fi
 		rm ${FLAG}
 	fi
 }
 
-${LOGGER} -t ${LOGGERTAG} "starting up!"
+echo "starting up!"
 
 if [ ! -d ${SCRIPTDIR} ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${SCRIPTDIR}"
+	echo "Required directory does not exist: ${SCRIPTDIR}"
 	exit
 fi
 
 if [ ! -d ${INGRESS_MSGDIR}/incoming ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${INGRESS_MSGDIR}/incoming"
+	echo "Required directory does not exist: ${INGRESS_MSGDIR}/incoming"
 	exit
 fi
 
@@ -76,7 +76,7 @@ while :
 
 	if [ -e 'OFFLINE' ]
 	then
-		${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
+		echo "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 		break
 	else
 		check_for_jobs
