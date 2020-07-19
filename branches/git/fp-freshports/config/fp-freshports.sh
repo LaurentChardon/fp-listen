@@ -14,9 +14,3 @@ FRESHPORTS_BASEDIR="/var/db/freshports"
 FRESHPORTS_MSGDIR="${BASEDIR}/message-queues"
 
 FRESHPORTS_FLAGDIR="${FRESHPORTS_MSGDIR}/signals"
-
-# for ingress user
-INGRESS_BASEDIR="/var/db/ingress"
-INGRESS_MSGDIR="${INGRESS_BASEDIR}/message-queues"
-
-INGRESS_FLAGDIR="${INGRESS_BASEDIR}/signals"
