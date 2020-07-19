@@ -60,6 +60,9 @@ then
 	exit
 fi
 
+echo incoming: ${INGRESS_MSGDIR}/incoming
+echo ready
+
 while :
 	do
 	cd ${SCRIPTDIR}

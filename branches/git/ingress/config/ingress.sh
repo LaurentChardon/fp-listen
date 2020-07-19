@@ -8,7 +8,8 @@
 PERL="/usr/local/bin/perl"
 
 SCRIPTDIR="/usr/local/libexec/freshports"
- 
+
+# this is also repeated in the freshports config file 
 # for ingress user
 INGRESS_BASEDIR="/var/db/ingress"
 INGRESS_MSGDIR="${INGRESS_BASEDIR}/message-queues"
