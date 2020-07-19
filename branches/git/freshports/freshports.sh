@@ -19,7 +19,7 @@
 
 # include our local parameters
 
-. /usr/local/etc/freshports/fp-freshports.sh
+. /usr/local/etc/freshports/freshports.sh
 
 CP='/bin/cp'
 
