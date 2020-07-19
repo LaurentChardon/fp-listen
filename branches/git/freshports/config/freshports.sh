@@ -11,6 +11,6 @@ SCRIPTDIR="/usr/local/libexec/freshports"
 
 # for freshports user
 FRESHPORTS_BASEDIR="/var/db/freshports"
-FRESHPORTS_MSGDIR="${BASEDIR}/message-queues"
+FRESHPORTS_MSGDIR="${FRESHPORTS_BASEDIR}/message-queues"
 
 FRESHPORTS_FLAGDIR="${FRESHPORTS_MSGDIR}/signals"
