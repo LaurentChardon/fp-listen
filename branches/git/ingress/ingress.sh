@@ -7,15 +7,7 @@
 #
 # include our local parameters
 
-
-id=`id -p`
-/usr/bin/logger -p local3.info $id
-
-
-. /usr/local/etc/freshports/fp-ingress.sh
-
-
-LOGGERTAG='fp-ingress'
+. /usr/local/etc/freshports/ingress.sh
 
 CP='/bin/cp'
 
