@@ -62,6 +62,13 @@ then
 	exit
 fi
 
+# NOTE this is under the ingress user:
+if [ ! -d ${INGRESS_MSGDIR}/incoming ]
+then
+	echo "Required directory does not exist: ${FRESHPORTS_MSGDIR}/incoming/"
+	exit
+fi
+
 if [ ! -d ${FRESHPORTS_MSGDIR}/recent ]
 then
 	echo "Required directory does not exist: ${FRESHPORTS_MSGDIR}/recent/"
@@ -73,6 +80,11 @@ then
 	echo "Required directory does not exist: ${FRESHPORTS_MSGDIR}/retry/"
 	exit	
 fi
+
+echo incoming: ${INGRESS_MSGDIR}/incoming
+echo recent:   ${FRESHPORTS_MSGDIR}/recent
+echo recent:   ${FRESHPORTS_MSGDIR}/retry
+echo ready
 
 while :
 	do
