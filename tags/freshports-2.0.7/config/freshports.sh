@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# $Id: config.sh.sample,v 1.2 2004-08-13 01:58:35 dan Exp $
+#
+# Copyright (c) 2001-2003 DVL Software
+#
+
+PERL="/usr/local/bin/perl"
+
+SCRIPTDIR="/usr/local/libexec/freshports"
+
+# for freshports user
+FRESHPORTS_BASEDIR="/var/db/freshports"
+FRESHPORTS_MSGDIR="${FRESHPORTS_BASEDIR}/message-queues"
+
+FRESHPORTS_FLAGDIR="${FRESHPORTS_MSGDIR}/signals"
