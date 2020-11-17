@@ -13,7 +13,7 @@ SCRIPTDIR="/usr/local/libexec/freshports"
 FRESHPORTS_BASEDIR="/var/db/freshports"
 FRESHPORTS_MSGDIR="${FRESHPORTS_BASEDIR}/message-queues"
 
-FRESHPORTS_FLAGDIR="${FRESHPORTS_MSGDIR}/signals"
+FRESHPORTS_FLAGDIR="${FRESHPORTS_BASEDIR}/signals"
 
 # this is also repeated in the ingress config file 
 # for ingress user
