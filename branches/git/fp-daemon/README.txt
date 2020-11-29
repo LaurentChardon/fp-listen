@@ -1,14 +1,15 @@
-#
-# $Id: README.txt,v 1.4 2006-01-08 02:46:39 dan Exp $
-#
-# Copyright (c) 2001-2003 DVL Software
-#
+Copyright Dan Langille - dan@langille.org
 
-Things to change before running:
+The configuration file is /usr/local/etc/freshports/fp-daemon.sh
 
-run      - name of user under which script will run
-env/HOME - home directory of user
+Yes, the script and its configuration file have the same name.
 
-This directory should be accessible by the above mentioned user.
+This script listens for signals, invokes job-waiting.pl, which then takes the
+appropriate action. We can't have both ingress and fp-daemon.sh invoking
+job-waiting.  Perhaps only one will invoke it and it will process signals for
+both git and svn jobs.
 
-e.g. chown dan:dan .
+This code originated at freshports-1/daemontools/trunk/fp-daemon where it was
+managed by daemontools.
+
+This git branch code will use damon(8)
