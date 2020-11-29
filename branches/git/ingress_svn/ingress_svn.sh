@@ -7,7 +7,7 @@
 #
 # include our local parameters
 
-. /usr/local/etc/freshports/fp-daemon.sh
+. /usr/local/etc/freshports/ingress_svn.sh
 
 CP='/bin/cp'
 
