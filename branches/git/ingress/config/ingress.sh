@@ -6,6 +6,7 @@
 #
 
 PERL="/usr/local/bin/perl"
+LOGGER="/usr/bin/logger -p local3.info"
 
 SCRIPTDIR="/usr/local/libexec/freshports"
 
@@ -13,5 +14,4 @@ SCRIPTDIR="/usr/local/libexec/freshports"
 # for ingress user
 INGRESS_BASEDIR="/var/db/ingress"
 INGRESS_MSGDIR="${INGRESS_BASEDIR}/message-queues"
-
-INGRESS_FLAGDIR="${INGRESS_BASEDIR}/signals"
+FLAGDIR="${INGRESS_BASEDIR}/signals"
