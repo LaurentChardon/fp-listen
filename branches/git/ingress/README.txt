@@ -1,6 +1,6 @@
 Copyright Dan Langille - dan@langille.org
 
-The configuration file is /usr/local/etc/freshports/fp-ingress.sh
+The configuration file is /usr/local/etc/freshports/ingress.sh
 
 Yes, the script and its configuration file have the same name.
 
