@@ -7,9 +7,7 @@
 #
 # include our local parameters
 
-. config.sh
-
-LOGGERTAG='fp-daemon'
+. /usr/local/etc/freshports/fp-daemon.sh
 
 CP='/bin/cp'
 
@@ -22,49 +20,17 @@ RM='/bin/rm'
 # sanity checking upon startup
 #
 
-check_for_jobs() {
-	#
-	# This flag file is only set by a job run by this script.
-	# A race condition should never arise.
-	#
-	FLAG="${FLAGDIR}/job_waiting"
-	if [ -f ${FLAG} ]
-	then
-		${LOGGER} -t ${LOGGERTAG} 'yes, there is a job waiting'
-		${PERL} ./job-waiting.pl
-		if [ $? -eq 0 ]
-		then
-			${LOGGER} -t ${LOGGERTAG} "job-waiting.pl finishes normally"
-		else
-			${LOGGER} -t ${LOGGERTAG} "FATAL job-waiting.pl finished with an error"
-		fi
-		rm ${FLAG}
-	fi
-}
-
-${LOGGER} -t ${LOGGERTAG} "starting up!"
+echo "starting up!"
 
 if [ ! -d ${SCRIPTDIR} ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${SCRIPTDIR}"
+	echo "Required directory does not exist: ${SCRIPTDIR}"
 	exit
 fi
 
-if [ ! -d ${INGRESSDIR}/message-queues/incoming ]
+if [ ! -d ${FP_DAEMON_INGRESSDIR}/message-queues/incoming ]
 then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${INGRESSDIR}/message-queues/incoming"
-	exit
-fi
-
-if [ ! -d ${BASEDIR}/message-queues/recent/ ]
-then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/message-queues/recent/"
-	exit
-fi
-
-if [ ! -d ${BASEDIR}/message-queues/retry/ ]
-then
-	${LOGGER} -t ${LOGGERTAG} "Required directory does not exist: ${BASEDIR}/message-queues/retry/"
+	echo "Required directory does not exist: ${FP_DAEMON_INGRESSDIR}/message-queues/incoming"
 	exit
 fi
 
@@ -72,39 +38,39 @@ while :
 	do
 	cd ${SCRIPTDIR}
 
-	INCOMING=${INGRESSDIR}/message-queues/incoming
+	INCOMING=${FP_DAEMON_INGRESSDIR}/message-queues/incoming
 	FILES=`echo ${INCOMING}/*`
 
 	if [ -e 'OFFLINE' ]
 	then
-		${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
+		echo "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 		break
 	else
 		if [ "$FILES" != "${INCOMING}/*" ]
 		then
-			${LOGGER} -t ${LOGGERTAG} "found stuff in ${INCOMING}"
+			echo "found stuff in ${INCOMING}"
 			for i in $FILES
 			do
 				if [ -e 'OFFLINE' ]
 				then
-					${LOGGER} -t ${LOGGERTAG} "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
+					echo "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 					break
 				else
-					${LOGGER} -t ${LOGGERTAG} "processing ${i}"
+					echo "processing ${i}"
 
+					# yes, this says cvs, but it can also do svn
 					/bin/sh ./freebsd-cvs.sh ${i}
 
 					RESULT=$?
-					${LOGGER} -t ${LOGGERTAG} "result=$RESULT"
+					echo "result=$RESULT"
 					basename=`basename ${i}`
 					if [ $RESULT -eq 0 ]
 					then
-						${LOGGER} -t ${LOGGERTAG} - "'`ls -l ${i}`'"
-						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld /var/db/ingress/message-queues/incoming`'"
-						${LOGGER} -t ${LOGGERTAG} - "'`ls -ld ${BASEDIR}/message-queues/recent/`'"
+						echo "'`ls -l ${i}`'"
+						echo "'`ls -ld /var/db/ingress/message-queues/incoming`'"
 
 						# use -p to preserve mtime
-						${CP} -p ${i} ${BASEDIR}/message-queues/recent/${basename}.raw
+						${CP} -p ${i} ~ingress/message-queues/recent/${basename}.raw
 
 						# using mv caused: /usr/local/bin/readproctitle service errors: ...message-queues/recent/2019.07.15.15.42.07.48391.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.43.31.53460.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.45.39.56551.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\n
 						# even when using this example:
@@ -122,20 +88,17 @@ while :
 						# 
 						${RM} ${i}
 					else
-						${LOGGER} -t ${LOGGERTAG} "${i} fails...."
+						echo "${i} fails...."
 
 						# move the original email to the retry directory
-						${MV} ${i} ${BASEDIR}/message-queues/retry/
+						${MV} ${i} ~ingress/message-queues/retry/
 
 						# and any other files as well
-						${MV}  ${BASEDIR}/message-queues/recent/${basename}.* ${BASEDIR}/message-queues/retry/
+						${MV}  ~ingress/message-queues/recent/${basename}.* ~ingress/message-queues/retry/
 					fi
 
-					check_for_jobs
 				fi
 			done
-		else
-			check_for_jobs
 		fi
 	fi
 	sleep 3
