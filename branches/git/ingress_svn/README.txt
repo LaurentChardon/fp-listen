@@ -1,6 +1,6 @@
 Copyright Dan Langille - dan@langille.org
 
-The configuration file is /usr/local/etc/freshports/fp-daemon.sh
+The configuration file is /usr/local/etc/freshports/ingress_svn.sh
 
 Yes, the script and its configuration file have the same name.
 
