@@ -28,9 +28,9 @@ then
 	exit
 fi
 
-if [ ! -d ${FP_DAEMON_INGRESSDIR}/message-queues/incoming ]
+if [ ! -d ${INGRESS_SVN_INGRESSDIR}/message-queues/incoming ]
 then
-	echo "Required directory does not exist: ${FP_DAEMON_INGRESSDIR}/message-queues/incoming"
+	echo "Required directory does not exist: ${INGRESS_SVN_INGRESSDIR}/message-queues/incoming"
 	exit
 fi
 
@@ -38,7 +38,7 @@ while :
 	do
 	cd ${SCRIPTDIR}
 
-	INCOMING=${FP_DAEMON_INGRESSDIR}/message-queues/incoming
+	INCOMING=${INGRESS_SVN_INGRESSDIR}/message-queues/incoming
 	FILES=`echo ${INCOMING}/*`
 
 	if [ -e 'OFFLINE' ]

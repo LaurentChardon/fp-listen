@@ -12,6 +12,6 @@ SCRIPTDIR="/usr/local/libexec/freshports"
 
 # this is also repeated in the freshports config file 
 # for ingress user
-FP_DAEMON_BASEDIR="/var/db/ingress_svn"
+INGRESS_SVN_BASEDIR="/var/db/ingress_svn"
 
-FLAGDIR="${FP_DAEMON_BASEDIR}/signals"
+FLAGDIR="${INGRESS_SVN_BASEDIR}/signals"
