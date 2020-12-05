@@ -123,8 +123,8 @@ while :
 
 					echo "loading that XML into the database via load_xml_into_db_git.pl"
 
-					echo ${PERL} ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} ${OUTPUT}/${filename}.loading ${OUTPUT}/${filename}.errors
-					${PERL} ${SCRIPTDIR}/load_xml_into_db_git.pl ${file} > ${OUTPUT}/${filename}.loading 2>${OUTPUT}/${filename}.errors
+					echo ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file}   ${OUTPUT}/${filename}.loading   ${OUTPUT}/${filename}.errors
+					     ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file} > ${OUTPUT}/${filename}.loading 2>${OUTPUT}/${filename}.errors
 					RESULT=$?
 
 					if [ -f ${OUTPUT}/${filename}.errors ]
@@ -166,7 +166,33 @@ while :
 						# drwxr-xr-x  2 root     ingress     10 Mar 20 13:53 DUPS
 						# drwxrwxr-x  2 ingress  freshports   2 Jul 15 15:29 incoming
 						# 
-						${RM} ${file}
+						echo removing ${file}
+
+						#
+						# Without this -f, the ssh session which did the 'service freshports start' would hang on this rm
+						#
+						# freshports 61989  0.0  0.0 10980  2336  -  IJ   19:02   0:00.00 /bin/rm /var/db/ingress/message-queues/incoming/2020.08.02.16.45.14.000000.fa3e16b820913309f1078dcefb69084a3ee5564b.xml
+						#
+						# In the logs, I would see:
+						#
+						# Aug  3 19:39:22 devgit-ingress01 freshports[51876]: '-rw-rw-r--  1 ingress  ingress  720 Aug  3 18:54 /var/db/ingress/message-queues/incoming/2020.08.02.16.45.14.000000.fa3e16b820913309f1078dcefb69084a3ee5564b.xml'
+						# Aug  3 19:39:22 devgit-ingress01 freshports[51876]: 'drwxr-xr-x  2 freshports  freshports  2 Jul 17 17:46 /var/db/freshports/message-queues/incoming/'
+						# Aug  3 19:39:22 devgit-ingress01 freshports[51876]: 'drwxr-xr-x  2 freshports  freshports  566 Aug  3 19:39 /var/db/freshports/message-queues/recent/'
+						# Aug  3 19:39:22 devgit-ingress01 freshports[51876]: removing /var/db/ingress/message-queues/incoming/2020.08.02.16.45.14.000000.fa3e16b820913309f1078dcefb69084a3ee5564b.xml
+						# Aug  3 19:39:53 devgit-ingress01 freshports[51876]: override rw-rw-r-- ingress/ingress uarch for /var/db/ingress/message-queues/incoming/2020.08.02.16.45.14.000000.fa3e16b820913309f1078dcefb69084a3ee5564b.xml? removal completed
+						# 
+						# I did not notice the override messaage with the question mark.
+						# I know why that was being asked.  The permissions on the file are on the first line.  If it was chgrp freshports, this would be OK
+						# This script runs as the freshports user which has write permissions on this directory:
+						#						$ ls -ld /var/db/ingress/message-queues/incoming
+						#drwxrwxr-x  2 ingress  freshports  51 Aug  3 19:48 /var/db/ingress/message-queues/incoming
+
+						
+						
+						# If the ssh session was terminated, the srcript would proceed.
+						#
+						rm -f ${file}
+						echo removal completed
 					else
 						echo "${file} fails...."
 
