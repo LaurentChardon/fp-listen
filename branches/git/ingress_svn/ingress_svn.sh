@@ -127,7 +127,11 @@ while :
 						${MV} -i ${SPOOLING}/${FILE_basename}.xml ${INGRESS_BASEDIR}/message-queues/incoming/
 						
 						# move the incoming email to the ingress recent directory
-						${MV} -i ${i} ${FRESHPORTS_BASEDIR}/message-queues/recent/
+						# we do a copy, not a move to avoid this error:
+						# mv: /var/db/freshports/message-queues/recent/2020.07.11.07.46.58.18048.txt: set owner/group (was: 10002/10001): Operation not permitted
+						#
+						${CP} -p ${i} ${FRESHPORTS_BASEDIR}/message-queues/recent/
+						${RM} ${i}
 					else
 						echo "${i} fails...."
 
