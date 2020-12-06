@@ -1,3 +1,9 @@
+NOTE:
+
+this work was started then I realized I already had svn_ingress underway.
+
+fp-daemon is abandoned and should be removed
+
 Copyright Dan Langille dan@langille.org
 
 This script processes incoming XML files and loads them into the database.
