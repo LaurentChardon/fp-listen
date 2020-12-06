@@ -10,10 +10,15 @@ LOGGER="/usr/bin/logger -p local3.info"
 
 SCRIPTDIR="/usr/local/libexec/freshports"
 
-# this is also repeated in the freshports config file 
-# for ingress user
+# Some of these values are repeated in other configuration files
+
+# where we find incoming email .txt file
 INGRESS_SVN_BASEDIR="/var/db/ingress_svn"
+
+# where we put the XML file
 INGRESS_BASEDIR="/var/db/ingress"
+
+# where we put the .txt file after creating the .xml files
 FRESHPORTS_BASEDIR="/var/db/freshports"
 
 FLAGDIR="${INGRESS_SVN_BASEDIR}/signals"
