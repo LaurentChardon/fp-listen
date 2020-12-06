@@ -50,7 +50,8 @@ then
 fi
 
 # do we have our own directory queues?
-for dir in "incoming retry spooling"
+REQUIRED_DIRS="incoming retry spooling"
+for dir in $REQUIRED_DIRS
 do
 	if [ ! -d ${INGRESS_SVN_BASEDIR}/message-queues/${dir} ]
 	then
