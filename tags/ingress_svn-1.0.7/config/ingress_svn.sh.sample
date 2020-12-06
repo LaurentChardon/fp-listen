@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# $Id: config.sh.sample,v 1.2 2004-08-13 01:58:35 dan Exp $
+#
+# Copyright (c) 2001-2003 DVL Software
+#
+
+PERL="/usr/local/bin/perl"
+LOGGER="/usr/bin/logger -p local3.info"
+
+SCRIPTDIR="/usr/local/libexec/freshports"
+
+# Some of these values are repeated in other configuration files
+
+# where we find incoming email .txt file
+INGRESS_SVN_BASEDIR="/var/db/ingress_svn"
+
+# where we put the XML file
+INGRESS_BASEDIR="/var/db/ingress"
+
+# where we put the .txt file after creating the .xml files
+FRESHPORTS_BASEDIR="/var/db/freshports"
+
+FLAGDIR="${INGRESS_SVN_BASEDIR}/signals"
