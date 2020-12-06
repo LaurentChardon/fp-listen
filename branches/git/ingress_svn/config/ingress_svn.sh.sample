@@ -13,5 +13,6 @@ SCRIPTDIR="/usr/local/libexec/freshports"
 # this is also repeated in the freshports config file 
 # for ingress user
 INGRESS_SVN_BASEDIR="/var/db/ingress_svn"
+INGRESS_BASEDIR="/var/db/ingress"
 
 FLAGDIR="${INGRESS_SVN_BASEDIR}/signals"

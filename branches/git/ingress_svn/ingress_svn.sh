@@ -3,6 +3,19 @@
 # $Id: fp-daemon.sh,v 1.17 2006-11-10 14:08:26 dan Exp $
 #
 # Copyright (c) 2001-2003 DVL Software
+
+# This is based on the original fp-daemon which converted incoming emails to
+# XML and loads them into the database.
+#
+# This script now converts incoming emails to XML and places them into a queue
+# to be processed.
+#
+# * incoming email is dropped into ~freshports/message-queues/incoming by maildrop
+#
+# * XML is moved into ~ingress/message-queues/incoming
+#
+# * errors are moved to ~freshports/messages-queues/retry
+# 
 #
 #
 # include our local parameters
@@ -22,23 +35,43 @@ RM='/bin/rm'
 
 echo "starting up!"
 
+# verify we can find our scripts
 if [ ! -d ${SCRIPTDIR} ]
 then
 	echo "Required directory does not exist: ${SCRIPTDIR}"
 	exit
 fi
 
-if [ ! -d ${INGRESS_SVN_BASEDIR}/message-queues/incoming ]
+# verify we can find the XML destination
+if [ ! -d ${INGRESS_BASEDIR}/message-queues/incoming ]
 then
-	echo "Required directory does not exist: ${INGRESS_SVN_BASEDIR}/message-queues/incoming"
+	echo "Required directory does not exist: ${INGRESS_BASEDIR}/message-queues/incoming"
 	exit
 fi
 
+# do we have our own directory queues?
+for dir in "incoming retry spooling"
+do
+	if [ ! -d ${INGRESS_SVN_BASEDIR}/message-queues/${dir} ]
+	then
+		echo "Required directory does not exist: ${INGRESS_SVN_BASEDIR}/message-queues/${dir}"
+		exit
+	fi
+done
+
 while :
 	do
+	
+	# sure, we do this every loop.  No big deal.
 	cd ${SCRIPTDIR}
 
 	INCOMING=${INGRESS_SVN_BASEDIR}/message-queues/incoming
+	SPOOLING=${INGRESS_SVN_BASEDIR}/message-queues/spooling
+
+	#
+	# this will be a list of files with full paths, or "/var/db/ingress_svn/message-queues/incoming/*"
+	# e.g. /var/db/ingress_svn/message-queues/incoming/2020.12.05.20.15.17.14743.txt
+	#
 	FILES=`echo ${INCOMING}/*`
 
 	if [ -e 'OFFLINE' ]
@@ -46,6 +79,7 @@ while :
 		echo "system is OFFLINE: ${SCRIPTDIR}/OFFLINE exists"
 		break
 	else
+		# if we found something
 		if [ "$FILES" != "${INCOMING}/*" ]
 		then
 			echo "found stuff in ${INCOMING}"
@@ -58,43 +92,44 @@ while :
 				else
 					echo "processing ${i}"
 
-					# yes, this says cvs, but it can also do svn
-					/bin/sh ./freebsd-cvs.sh ${i}
+					FILE=`basename ${i}` 
+					#
+					# convert the raw file to XML
+					#
+					echo "$0 converting to XML via process_mail.pl"
+					echo /usr/local/bin/perl ${SCRIPTDIR}/process_mail.pl from ${i} into ${SPOOLING}/${FILE}.xml errors to ${SPOOLING}/${FILE}.errors
+					     /usr/local/bin/perl ${SCRIPTDIR}/process_mail.pl <    ${i} >    ${SPOOLING}/${FILE}.xml         2>${SPOOLING}/${FILE}.errors
 
 					RESULT=$?
+
+					if [ -f ${XML}/${FILE}.errors ]
+					then
+					#  found errors
+					   if [ ! -s $XML/${FILE}.errors ]
+					   then
+					      # remove zero-length files
+					      $RM $XML/${FILE}.errors
+					   fi
+					fi
+
 					echo "result=$RESULT"
-					basename=`basename ${i}`
 					if [ $RESULT -eq 0 ]
 					then
-						echo "'`ls -l ${i}`'"
-						echo "'`ls -ld /var/db/ingress/message-queues/incoming`'"
+						# move the XML file into the ~ingress/message-queues/incoming
+						echo "- '`ls -l ${i}`'"
+						echo "- '`ls -ld ${INGRESS_BASEDIR}/message-queues/incoming`'"
 
-						# use -p to preserve mtime
-						${CP} -p ${i} ~ingress/message-queues/recent/${basename}.raw
-
-						# using mv caused: /usr/local/bin/readproctitle service errors: ...message-queues/recent/2019.07.15.15.42.07.48391.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.43.31.53460.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\nmv: /var/db/freshports/message-queues/recent/2019.07.15.15.45.39.56551.txt.raw: set owner/group (was: 10002/10001): Operation not permitted\n
-						# even when using this example:
-						# [dan@dev-ingress01:~] $ ls -l ~ingress/message-queues/ ~freshports/message-queues/
-						# /var/db/freshports/message-queues/:
-						# total 248
-						# drwxr-xr-x  18 freshports  freshports   18 Jul  2 03:16 archive
-						# 
-						# drwxr-xr-x  10 freshports  freshports   18 Jun 10 22:03 retry
-						# 
-						# /var/db/ingress/message-queues/:
-						# total 3
-						# drwxr-xr-x  2 root     ingress     10 Mar 20 13:53 DUPS
-						# drwxrwxr-x  2 ingress  freshports   2 Jul 15 15:29 incoming
-						# 
-						${RM} ${i}
+						# move the XML into the incoming queue
+						# we spool, THEN move to avoid race conditions on reading and processing partially composed XML
+						${MV} -i ${SPOOLING}/${FILE}.xml ${INGRESS_BASEDIR}/message-queues/incoming/
 					else
 						echo "${i} fails...."
 
 						# move the original email to the retry directory
-						${MV} ${i} ~ingress/message-queues/retry/
+						${MV} ${i} ${INGRESS_SVN_BASEDIR}/message-queues/retry/
 
 						# and any other files as well
-						${MV}  ~ingress/message-queues/recent/${basename}.* ~ingress/message-queues/retry/
+						${MV} ${SPOOLING}/${FILE}.* ${INGRESS_SVN_BASEDIR}/message-queues/retry/
 					fi
 
 				fi
