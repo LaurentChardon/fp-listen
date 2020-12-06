@@ -114,8 +114,9 @@ while :
 					# e.g. /var/db/freshports/message-queues/incoming/2020.07.02.13.35.18.000000.1b49ab9b7bb15abe91a9e0610fa676053f8fe021.xml
 					echo "processing ${file}"
 
-					# e.g. 2020.07.02.13.35.18.000000.1b49ab9b7bb15abe91a9e0610fa676053f8fe021.xml
-					filename=`basename ${file}`
+					# e.g. 2020.07.02.13.35.18.000000.1b49ab9b7bb15abe91a9e0610fa676053f8fe021
+					# get the filename, without the pathname, and without the .xml suffix
+					filename=`basename ${file} .xml`
 
 					#
 					# load the XML into the database
@@ -123,8 +124,8 @@ while :
 
 					echo "loading that XML into the database via load_xml_into_db_git.pl"
 
-					echo ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file}   ${OUTPUT}/${filename}.loading   ${OUTPUT}/${filename}.errors
-					     ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file} > ${OUTPUT}/${filename}.loading 2>${OUTPUT}/${filename}.errors
+					echo ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file}   ${OUTPUT}/${filename}.log   ${OUTPUT}/${filename}.errors
+					     ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file} > ${OUTPUT}/${filename}.log 2>${OUTPUT}/${filename}.errors
 					RESULT=$?
 
 					if [ -f ${OUTPUT}/${filename}.errors ]
@@ -200,7 +201,7 @@ while :
 						${MV} ${file} ${FRESHPORTS_MSGDIR}/retry/
 
 						# and any other files as well
-						${MV}  ${FRESHPORTS_MSGDIR}/recent/${filename}.* ${FRESHPORTS_MSGDIR}/retry/
+						${MV} ${FRESHPORTS_MSGDIR}/recent/${filename}.* ${FRESHPORTS_MSGDIR}/retry/
 					fi
 
 					check_for_jobs
