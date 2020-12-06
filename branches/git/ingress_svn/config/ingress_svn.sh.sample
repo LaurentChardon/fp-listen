@@ -14,5 +14,6 @@ SCRIPTDIR="/usr/local/libexec/freshports"
 # for ingress user
 INGRESS_SVN_BASEDIR="/var/db/ingress_svn"
 INGRESS_BASEDIR="/var/db/ingress"
+FRESHPORTS_BASEDIR="/var/db/freshports"
 
 FLAGDIR="${INGRESS_SVN_BASEDIR}/signals"

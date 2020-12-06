@@ -93,23 +93,25 @@ while :
 				else
 					echo "processing ${i}"
 
-					FILE=`basename ${i}` 
+					FILE=`basename ${i}`
+					# get the filename without the .txt extension
+					FILE_basename=`basename $FILE .txt`
 					#
 					# convert the raw file to XML
 					#
 					echo "$0 converting to XML via process_mail.pl"
-					echo /usr/local/bin/perl ${SCRIPTDIR}/process_mail.pl from ${i} into ${SPOOLING}/${FILE}.xml errors to ${SPOOLING}/${FILE}.errors
-					     /usr/local/bin/perl ${SCRIPTDIR}/process_mail.pl <    ${i} >    ${SPOOLING}/${FILE}.xml         2>${SPOOLING}/${FILE}.errors
+					echo /usr/local/bin/perl ${SCRIPTDIR}/process_mail.pl from ${i} into ${SPOOLING}/${FILE_basename}.xml errors to ${SPOOLING}/${FILE_basename}.errors
+					     /usr/local/bin/perl ${SCRIPTDIR}/process_mail.pl <    ${i} >    ${SPOOLING}/${FILE_basename}.xml         2>${SPOOLING}/${FILE_basename}.errors
 
 					RESULT=$?
 
-					if [ -f ${XML}/${FILE}.errors ]
+					if [ -f ${XML}/${FILE_basename}.errors ]
 					then
 					#  found errors
-					   if [ ! -s $XML/${FILE}.errors ]
+					   if [ ! -s $XML/${FILE_basename}.errors ]
 					   then
 					      # remove zero-length files
-					      $RM $XML/${FILE}.errors
+					      $RM $XML/${FILE_basename}.errors
 					   fi
 					fi
 
@@ -122,7 +124,10 @@ while :
 
 						# move the XML into the incoming queue
 						# we spool, THEN move to avoid race conditions on reading and processing partially composed XML
-						${MV} -i ${SPOOLING}/${FILE}.xml ${INGRESS_BASEDIR}/message-queues/incoming/
+						${MV} -i ${SPOOLING}/${FILE_basename}.xml ${INGRESS_BASEDIR}/message-queues/incoming/
+						
+						# move the incoming email to the ingress recent directory
+						${MV} -i ${i} ${FRESHPORTS_BASEDIR}/message-queues/recent/
 					else
 						echo "${i} fails...."
 
@@ -130,7 +135,7 @@ while :
 						${MV} ${i} ${INGRESS_SVN_BASEDIR}/message-queues/retry/
 
 						# and any other files as well
-						${MV} ${SPOOLING}/${FILE}.* ${INGRESS_SVN_BASEDIR}/message-queues/retry/
+						${MV} ${SPOOLING}/${FILE_basename}.* ${INGRESS_SVN_BASEDIR}/message-queues/retry/
 					fi
 
 				fi
