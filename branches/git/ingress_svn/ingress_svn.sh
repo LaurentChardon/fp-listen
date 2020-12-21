@@ -73,7 +73,7 @@ while :
 	# this will be a list of files with full paths, or "/var/db/ingress_svn/message-queues/incoming/*"
 	# e.g. /var/db/ingress_svn/message-queues/incoming/2020.12.05.20.15.17.14743.txt
 	#
-	FILES=`echo ${INCOMING}/*`
+	FILES=$(echo ${INCOMING}/*)
 
 	if [ -e 'OFFLINE' ]
 	then
@@ -93,9 +93,9 @@ while :
 				else
 					echo "processing ${i}"
 
-					FILE=`basename ${i}`
+					FILE=$(basename ${i})
 					# get the filename without the .txt extension
-					FILE_basename=`basename $FILE .txt`
+					FILE_basename=$(basename $FILE .txt)
 					#
 					# convert the raw file to XML
 					#
@@ -119,8 +119,8 @@ while :
 					if [ $RESULT -eq 0 ]
 					then
 						# move the XML file into the ~ingress/message-queues/incoming
-						echo "- '`ls -l ${i}`'"
-						echo "- '`ls -ld ${INGRESS_BASEDIR}/message-queues/incoming`'"
+						echo "- '$(ls -l ${i})'"
+						echo "- '$(ls -ld ${INGRESS_BASEDIR}/message-queues/incoming)'"
 
 						# move the XML into the incoming queue
 						# we spool, THEN move to avoid race conditions on reading and processing partially composed XML
