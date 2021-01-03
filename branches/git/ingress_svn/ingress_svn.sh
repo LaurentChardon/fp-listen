@@ -27,7 +27,10 @@ CP='/bin/cp'
 # we do not use -i because that would fail when re re-run a commit
 MV='/bin/mv'
 
-RM='/bin/rm'
+# the -f was added in to cope wtih a permission issue
+# the file was chown root
+# /var/db/ingress_svn/message-queues/incoming/2021.01.01.18.10.38.42274.txt
+RM='/bin/rm -f'
 
 #
 # sanity checking upon startup
@@ -105,13 +108,15 @@ while :
 
 					RESULT=$?
 
-					if [ -f ${XML}/${FILE_basename}.errors ]
+					echo ${SPOOLING}/${FILE_basename}.errors for errors
+					if [ -f ${SPOOLING}/${FILE_basename}.errors ]
 					then
 					#  found errors
-					   if [ ! -s $XML/${FILE_basename}.errors ]
+					   if [ ! -s ${SPOOLING}/${FILE_basename}.errors ]
 					   then
 					      # remove zero-length files
-					      $RM $XML/${FILE_basename}.errors
+					      echo "removing the zero length error file: ${SPOOLING}/${FILE_basename}.errors"
+					      $RM ${SPOOLING}/${FILE_basename}.errors
 					   fi
 					fi
 
@@ -119,19 +124,31 @@ while :
 					if [ $RESULT -eq 0 ]
 					then
 						# move the XML file into the ~ingress/message-queues/incoming
-						echo "- '$(ls -l ${i})'"
-						echo "- '$(ls -ld ${INGRESS_BASEDIR}/message-queues/incoming)'"
+						echo "$(ls -ld ${i} ${INGRESS_BASEDIR}/message-queues/incoming ${FRESHPORTS_BASEDIR}/message-queues/recent/)"
 
 						# move the XML into the incoming queue
 						# we spool, THEN move to avoid race conditions on reading and processing partially composed XML
 						${MV} -i ${SPOOLING}/${FILE_basename}.xml ${INGRESS_BASEDIR}/message-queues/incoming/
+						RESULT=$?
+						if [ $? -ne 0 ]
+						then
+							echo "FATAL ERROR: '$RESULT' - cannot move ${SPOOLING}/${FILE_basename}.xml to ${INGRESS_BASEDIR}/message-queues/incoming/"
+							exit 12
+						fi
 						
 						# move the incoming email to the ingress recent directory
 						# we do a copy, not a move to avoid this error:
 						# mv: /var/db/freshports/message-queues/recent/2020.07.11.07.46.58.18048.txt: set owner/group (was: 10002/10001): Operation not permitted
 						#
 						${CP} -p ${i} ${FRESHPORTS_BASEDIR}/message-queues/recent/
-						${RM} ${i}
+						# if we copied, remove
+						if [ -f ${FRESHPORTS_BASEDIR}/message-queues/recent/${FILE_basename}.txt ]
+						then
+							${RM} ${i}
+						else
+							echo "FATAL ERROR: cannot copy ${i} to ${FRESHPORTS_BASEDIR}/message-queues/recent/${FILE_basename}.txt"
+							exit 13
+						fi
 					else
 						echo "${i} fails...."
 
@@ -143,6 +160,8 @@ while :
 					fi
 
 				fi
+#				echo doing an EXIT AFTER ONLY ONE FILE
+#				exit
 			done
 		fi
 	fi
