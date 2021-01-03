@@ -92,7 +92,7 @@ while :
 
 	OUTPUT="${FRESHPORTS_MSGDIR}/recent"
 	INCOMING=${INGRESS_MSGDIR}/incoming
-	FILES=`echo ${INCOMING}/*`
+	FILES=$(echo ${INCOMING}/*)
 
 	if [ -e 'OFFLINE' ]
 	then
@@ -116,13 +116,13 @@ while :
 
 					# e.g. 2020.07.02.13.35.18.000000.1b49ab9b7bb15abe91a9e0610fa676053f8fe021
 					# get the filename, without the pathname, and without the .xml suffix
-					filename=`basename ${file} .xml`
+					filename=$(basename ${file} .xml)
 
 					#
 					# load the XML into the database
 					#
 
-					echo "loading that XML into the database via load_xml_into_db_git.pl"
+					echo "loading that XML into the database via load_xml_into_db.pl"
 
 					echo ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file}   ${OUTPUT}/${filename}.log   ${OUTPUT}/${filename}.errors
 					     ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file} > ${OUTPUT}/${filename}.log 2>${OUTPUT}/${filename}.errors
@@ -142,13 +142,11 @@ while :
 					echo "XML loading finished"
 
 					echo "result=$RESULT"
-					basename=`basename ${file}`
+					basename=$(basename ${file})
 					if [ $RESULT -eq 0 ]
 					then
 						# the output of the command is enclosed in "''" in case the ls output starts with a - and would therefore be interpreted as an argument
- 						echo "'`ls -l ${file}`'"
-						echo "'`ls -ld ${FRESHPORTS_MSGDIR}/incoming/`'"
-						echo "'`ls -ld ${FRESHPORTS_MSGDIR}/recent/`'"
+ 						echo "$(ls -ld ${file} ${FRESHPORTS_MSGDIR}/incoming/ ${FRESHPORTS_MSGDIR}/recent/)"
 
 						# use -p to preserve mtime
 						${CP} -p ${file} ${OUTPUT}
