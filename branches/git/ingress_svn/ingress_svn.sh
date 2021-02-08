@@ -2,7 +2,7 @@
 #
 # $Id: fp-daemon.sh,v 1.17 2006-11-10 14:08:26 dan Exp $
 #
-# Copyright (c) 2001-2003 DVL Software
+# Copyright (c) 2001-2021 Dan Langille
 
 # This is based on the original fp-daemon which converted incoming emails to
 # XML and loads them into the database.
@@ -10,11 +10,14 @@
 # This script now converts incoming emails to XML and places them into a queue
 # to be processed.
 #
-# * incoming email is dropped into ~freshports/message-queues/incoming by maildrop
+# * incoming email is dropped into ~ingress_svn/message-queues/incoming by maildrop
 #
-# * XML is moved into ~ingress/message-queues/incoming
+# * XML is created in ~ingress_svn/message-queues/spooling and moved
+#                into     ~ingress/message-queues/incoming
+# 
+# NOTE the different users in the above two directories
 #
-# * errors are moved to ~freshports/messages-queues/retry
+# * errors are moved to ~ingress_svn/messages-queues/retry
 # 
 #
 #
