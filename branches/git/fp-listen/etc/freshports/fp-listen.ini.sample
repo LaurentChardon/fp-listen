@@ -13,6 +13,7 @@ SCRIPTDIR	= '/usr/local/libexec/freshports'
 BASEDIR         = /var/db/freshports
 
 CATEGORY_CACHE_PATH = %(BASEDIR)s/cache/categories/%%s/*
+COMMIT_CACHE_PATH   = %(BASEDIR)s/cache/commits/%%s/
 PORT_CACHE_PATH     = %(BASEDIR)s/cache/ports/%%s/%%s/*
 DATE_CACHE_PATH     = %(BASEDIR)s/cache/daily/%%s/%%s/%%s.*
 NEWS_CACHE_DIR      = %(BASEDIR)s/cache/news/

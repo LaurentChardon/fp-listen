@@ -110,6 +110,44 @@ def PackagesCacheClear():
 
   syslog.syslog(syslog.LOG_NOTICE, "Done with PackagesCacheClear()");
 
+def CommitsCacheClear():
+  dbh = psycopg2.connect(DSN)
+  curs = dbh.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+  curs.execute("SELECT commit_to_clear FROM cache_clearing_commits")
+  NumRows = curs.rowcount
+  dbh.commit();
+  if (NumRows > 0):
+    syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
+    rows = curs.fetchall()
+    for row in rows:
+      #
+      filenameglob = config['dirs']['COMMIT_CACHE_PATH'] % (row['commit_to_clear'])
+      syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
+
+      try:
+        for filename in glob.glob(filenameglob):
+          syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+          if os.path.isfile(filename):
+            os.remove(filename)
+          else:
+            shutil.rmtree(filename)
+
+      except FileNotFoundError:
+        syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
+
+      syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_commits WHERE commit_to_clear = '%s'" % (row['commit_to_clear']))
+      curs.execute("DELETE FROM cache_clearing_commits WHERE commit_to_clear = '%s'" % (row['commit_to_clear']))
+      dbh.commit()
+
+    # end for
+  else:
+    syslog.syslog(syslog.LOG_ERR, 'ERROR: No cached entries found for removal')
+  # end if
+    
+  syslog.syslog(syslog.LOG_NOTICE, 'finished')
+  return NumRows
+
 def ClearDateCacheEntries():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache date to remove...')
   dbh = psycopg2.connect(DSN)
@@ -154,11 +192,13 @@ def ClearDateCacheEntries():
   syslog.syslog(syslog.LOG_NOTICE, 'finished')
   return NumRows
 
+
 def Touch(File):
   if not os.path.exists(File):
     fd = open(File, 'aos.O_WRONLY | os.O_NONBLOCK | os.O_CREAT | os.O_NOCTTY | os.O_APPEND')
     fd.close()
   os.utime(File, None)
+
 
 def ProcessCategoryNew():
   syslog.syslog(syslog.LOG_NOTICE, 'We have a new category')
@@ -167,14 +207,18 @@ def ProcessCategoryNew():
   Touch(config['flags']['WWWENPortsCategoriesFlag'])
   Touch(config['flags']['JOBWAITING'])
 
+
 def ProcessPortsMoved():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/MOVED')
+
 
 def ProcessPortsUpdating():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/UPDATING')
 
+
 def ProcessVUXML():
   syslog.syslog(syslog.LOG_NOTICE, 'processing ports/security/portaudit/vuln.xml')
+
   
 def ClearMiscCaches():
   syslog.syslog(syslog.LOG_NOTICE, 'invoked: ClearMiscCaches()');
@@ -261,6 +305,9 @@ while 1:
           # at the time of writing, there was no reason to ClearMiscCaches() when
           # new packages arrive
           clear_cache = False;
+        elif listens[notify.channel] == 'listen_commit':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking CommitsClearCache()");
+          CommitsCacheClear()
         else:
           clear_cache = False;
           syslog.syslog(syslog.LOG_ERR, "Code does not know what to do when '%s' is found." % notify.channel)
