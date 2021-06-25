@@ -23,6 +23,6 @@ PKG_ZFS_SNAPSHOT    = system/data/freshports-cache-packages/FILLTHISIN@empty
 
 [flags]
 # used for processing category updates
-DYNAMICDIR			= %(BASEDIR)s/cache
-WWWENPortsCategoriesFlag	= %(DYNAMICDIR)s/signals/www.en.ports.categories
-JOBWAITING			= %(DYNAMICDIR)s/signals/job_waiting
+DYNAMICDIR               = %(BASEDIR)s/cache
+WWWENPortsCategoriesFlag = %(DYNAMICDIR)s/signals/www.en.ports.categories
+JOBWAITING               = %(DYNAMICDIR)s/signals/job_waiting
