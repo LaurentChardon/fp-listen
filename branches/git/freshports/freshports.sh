@@ -83,7 +83,7 @@ fi
 
 echo incoming: ${INGRESS_MSGDIR}/incoming
 echo recent:   ${FRESHPORTS_MSGDIR}/recent
-echo recent:   ${FRESHPORTS_MSGDIR}/retry
+echo retry :   ${FRESHPORTS_MSGDIR}/retry
 echo ready
 
 while :
