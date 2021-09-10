@@ -25,7 +25,7 @@ from pathlib import Path # for removing files from cache dir
 config = configparser.ConfigParser()
 config.read('/usr/local/etc/freshports/fp-listen.ini')
 
-DSN = 'host=' + config['database']['HOST'] + ' dbname=' + config['database']['DBNAME'] + ' user=' + config['database']['DBUSER'] + ' password=' + config['database']['PASSWORD']
+DSN = 'host=' + config['database']['HOST'] + ' dbname=' + config['database']['DBNAME'] + ' user=' + config['database']['DBUSER'] + ' password=' + config['database']['PASSWORD'] + "sslmode='require'"
 
 def RemoveCacheEntry():
   syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
