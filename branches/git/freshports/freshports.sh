@@ -81,9 +81,16 @@ then
 	exit	
 fi
 
+if [ ! -d ${FRESHPORTS_MSGDIR}/spooling ]
+then
+	echo "Required directory does not exist: ${FRESHPORTS_MSGDIR}/spooling/"
+	exit	
+fi
+
 echo incoming: ${INGRESS_MSGDIR}/incoming
 echo recent:   ${FRESHPORTS_MSGDIR}/recent
 echo retry:    ${FRESHPORTS_MSGDIR}/retry
+echo spooling: ${FRESHPORTS_MSGDIR}/spooling
 echo ready
 
 while :
@@ -91,6 +98,8 @@ while :
 	cd ${SCRIPTDIR}
 
 	OUTPUT="${FRESHPORTS_MSGDIR}/recent"
+	RETRY="${FRESHPORTS_MSGDIR}/retry"
+	SPOOLING="${FRESHPORTS_MSGDIR}/spooling"
 	INCOMING=${INGRESS_MSGDIR}/incoming
 	FILES=$(echo ${INCOMING}/*)
 
@@ -124,18 +133,19 @@ while :
 
 					echo "loading that XML into the database via load_xml_into_db.pl"
 
-					echo ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file}   ${OUTPUT}/${filename}.log   ${OUTPUT}/${filename}.errors
-					     ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file} > ${OUTPUT}/${filename}.log 2>${OUTPUT}/${filename}.errors
+					echo ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file}   ${SPOOLING}/${filename}.log   ${SPOOLING}/${filename}.errors
+					     ${PERL} ${SCRIPTDIR}/load_xml_into_db.pl ${file} > ${SPOOLING}/${filename}.log 2>${SPOOLING}/${filename}.errors
 					RESULT=$?
 
-					if [ -f ${OUTPUT}/${filename}.errors ]
+					if [ -f ${SPOOLING}/${filename}.errors ]
 					then
 						#  found errors
-						if [ -s ${OUTPUT}/${filename}.errors ]
+						if [ -s ${SPOOLING}/${filename}.errors ]
 						then
-							# do nothing, leave that file there.
+							# move that file to the output directory
+							mv ${SPOOLING}/${filename}.errors ${OUTPUT}/
 						else
-							rm ${OUTPUT}/${filename}.errors
+							rm ${SPOOLING}/${filename}.errors
 						fi
 					fi
 
@@ -146,7 +156,7 @@ while :
 					if [ $RESULT -eq 0 ]
 					then
 						# the output of the command is enclosed in "''" in case the ls output starts with a - and would therefore be interpreted as an argument
- 						echo "$(ls -ld ${file} ${FRESHPORTS_MSGDIR}/incoming/ ${FRESHPORTS_MSGDIR}/recent/)"
+ 						echo "$(ls -ld ${file} ${INCOMING}/ ${OUTPUT}/)"
 
 						# use -p to preserve mtime
 						${CP} -p ${file} ${OUTPUT}
@@ -183,8 +193,8 @@ while :
 						# I did not notice the override messaage with the question mark.
 						# I know why that was being asked.  The permissions on the file are on the first line.  If it was chgrp freshports, this would be OK
 						# This script runs as the freshports user which has write permissions on this directory:
-						#						$ ls -ld /var/db/ingress/message-queues/incoming
-						#drwxrwxr-x  2 ingress  freshports  51 Aug  3 19:48 /var/db/ingress/message-queues/incoming
+						# $ ls -ld /var/db/ingress/message-queues/incoming
+						# drwxrwxr-x  2 ingress  freshports  51 Aug  3 19:48 /var/db/ingress/message-queues/incoming
 
 						
 						
@@ -192,14 +202,18 @@ while :
 						#
 						rm -f ${file}
 						echo removal completed
+						
+						# copy over .log file, or anything like that
+						${MV} ${SPOOLING}/${filename}.* ${OUTPUT}/
+						
 					else
 						echo "${file} fails...."
 
 						# move the original email to the retry directory
-						${MV} ${file} ${FRESHPORTS_MSGDIR}/retry/
+						${MV} ${file} ${RETRY}/
 
 						# and any other files as well
-						${MV} ${FRESHPORTS_MSGDIR}/recent/${filename}.* ${FRESHPORTS_MSGDIR}/retry/
+						${MV} ${SPOOLING}/${filename}.* ${RETRY}/
 					fi
 
 					check_for_jobs
