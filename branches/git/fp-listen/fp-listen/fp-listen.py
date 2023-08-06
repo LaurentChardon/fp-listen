@@ -125,6 +125,7 @@ def PackagesCacheClear():
   syslog.syslog(syslog.LOG_NOTICE, "Done with PackagesCacheClear()");
 
 def CommitsCacheClear():
+  glob_templates = [ 'COMMIT_CACHE_PATH', 'SANITY_CACHE_PATH', 'SANITY_MAIN_CACHE_PATH' ]
   dbh = psycopg2.connect(DSN)
   curs = dbh.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -135,26 +136,31 @@ def CommitsCacheClear():
     syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
     rows = curs.fetchall()
     for row in rows:
-      #
-      filenameglob = config['dirs']['COMMIT_CACHE_PATH'] % (row['commit_to_clear'])
-      syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
+      for template in glob_templates:
+        if (template == 'SANITY_MAIN_CACHE_PATH'):
+          filenameglob = config['dirs'][template]
+        else:
+          filenameglob = config['dirs'][template] % (row['commit_to_clear'])
 
-      try:
-        for filename in glob.glob(filenameglob):
-          syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
-          if os.path.isfile(filename):
-            os.remove(filename)
-          else:
-            shutil.rmtree(filename)
+        syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
+        
+        try:
+          for filename in glob.glob(filenameglob):
+            syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+            if os.path.isfile(filename):
+              os.remove(filename)
+            else:
+              shutil.rmtree(filename)
 
-      except FileNotFoundError:
-        syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
-
+        except FileNotFoundError:
+          syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
+      # endfor templates
+    
       syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_commits WHERE commit_to_clear = '%s'" % (row['commit_to_clear']))
       curs.execute("DELETE FROM cache_clearing_commits WHERE commit_to_clear = '%s'" % (row['commit_to_clear']))
       dbh.commit()
 
-    # end for
+    # end for rows
   else:
     syslog.syslog(syslog.LOG_ERR, 'ERROR: No cached entries found for removal')
   # end if
