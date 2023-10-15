@@ -27,15 +27,15 @@ config.read('/usr/local/etc/freshports/fp-listen.ini')
 
 DSN = 'host=' + config['database']['HOST'] + ' dbname=' + config['database']['DBNAME'] + ' user=' + config['database']['DBUSER'] + ' password=' + config['database']['PASSWORD'] + "sslmode='require'"
 
-def RemoveCacheEntry():
+def RemovePortsCacheEntry():
   something_cleared = False
-  syslog.syslog(syslog.LOG_NOTICE, 'checking for cache entries to remove...')
+  syslog.syslog(syslog.LOG_NOTICE, 'checking for file entries to remove...')
   dbh = psycopg2.connect(DSN)
   curs = dbh.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
   # we loop until nothing is found to delete. See comment at end of loop.
   while 1:
-    syslog.syslog(syslog.LOG_NOTICE, 'at the top of the loop looking for cache entries to remove...')
+    syslog.syslog(syslog.LOG_NOTICE, 'at the top of the loop looking for cache port entries to remove...')
     curs.execute("SELECT id, port_id, category, port FROM cache_clearing_ports ORDER BY id")
     NumRows = curs.rowcount
     dbh.commit();
@@ -62,7 +62,7 @@ def RemoveCacheEntry():
           syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
 
         except:
-          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
+          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache port entry.  Error message is %s' % (sys.exc_info()[0]))
           # if we can't delete it, do not remove it from cache
           continue
 
@@ -83,12 +83,87 @@ def RemoveCacheEntry():
           syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
 
         except:
-          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
+          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting port entry.  Error message is %s' % (sys.exc_info()[0]))
           # if we can't delete it, do not remove it from cache
           continue
 
         syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_ports WHERE id = %d" % (row['id']))
         curs.execute("DELETE FROM cache_clearing_ports WHERE id = %d" % (row['id']))
+        dbh.commit()
+      # end for
+      syslog.syslog(syslog.LOG_NOTICE, 'at the bottom of the loop looking for port entries to remove...')
+    else:
+      if something_cleared:
+        syslog.syslog(syslog.LOG_NOTICE, 'No cached port entries found for removal')
+      else:
+        syslog.syslog(syslog.LOG_ERR, 'ERROR: No cached entries found for removal')
+      #
+      # we stay in this loop until there are no entries to remove
+      # this avoids the race condition where more entries are added
+      # while we are running. The NOTIFY issued then is missed/squashed/DUNNO.
+      #
+      break;
+    # end if
+    
+  syslog.syslog(syslog.LOG_NOTICE, 'finished')
+  return NumRows
+
+def RemoveFilesCacheEntry():
+  # this removes cached entries for MOVED, UPDATING, a Makefille, etc.
+  # it was copied from RemovePortsCacheEntry and is not finished yet.
+  # dvl- 2023-10-15
+  #
+  something_cleared = False
+  syslog.syslog(syslog.LOG_NOTICE, 'checking for cache file entries to remove...')
+  dbh = psycopg2.connect(DSN)
+  curs = dbh.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+  # we loop until nothing is found to delete. See comment at end of loop.
+  while 1:
+    syslog.syslog(syslog.LOG_NOTICE, 'at the top of the loop looking for cache file entries to remove...')
+    curs.execute("SELECT id, pathname FROM cache_clearing_files ORDER BY id")
+    NumRows = curs.rowcount
+    dbh.commit();
+    if (NumRows > 0):
+      something_cleared = True
+      syslog.syslog(syslog.LOG_NOTICE, 'COUNT: %d entries to process' % (NumRows))
+      rows = curs.fetchall()
+      for row in rows:
+        #
+        # we clear the file cache, which be in src, doc, or ports?
+        # I think we show history only for /ports, so we can concentrate on that.
+        # We also don't distinguish between head and quarterly for non-ports.
+        # We can assume anything here is on head and not part of a category or port.
+        # That leaves us with Mk, MOVED, UPDATING, etc.
+        # so, strip off /ports/head and remove this from the ~freshports/cache/ports/ directory
+        #
+
+        # change /ports/head/MOVED
+        pathname = row['pathname'].replace('/ports/head/', '/')
+
+        syslog.syslog(syslog.LOG_NOTICE, 'we would be removing: %s' % pathname)
+        filenameglob = config['dirs']['FILE_CACHE_PATH'] % (pathname)
+        syslog.syslog(syslog.LOG_NOTICE, 'removing glob %s' % (filenameglob))
+
+        try:
+          for filename in glob.glob(filenameglob):
+            syslog.syslog(syslog.LOG_NOTICE, 'removing %s' % (filename))
+            if os.path.isfile(filename):
+              os.remove(filename)
+            else:
+              shutil.rmtree(filename)
+
+        except FileNotFoundError:
+          syslog.syslog(syslog.LOG_CRIT, 'could not find file for deletion %s' % (filename))
+
+        except:
+          syslog.syslog(syslog.LOG_CRIT, 'ERROR: error deleting cache entry.  Error message is %s' % (sys.exc_info()[0]))
+          # if we can't delete it, do not remove it from cache
+          continue
+
+
+        syslog.syslog(syslog.LOG_NOTICE, "DELETE FROM cache_clearing_files WHERE id = %d" % (row['id']))
+        curs.execute("DELETE FROM cache_clearing_files WHERE id = %d" % (row['id']))
         dbh.commit()
       # end for
       syslog.syslog(syslog.LOG_NOTICE, 'at the bottom of the loop looking for cache entries to remove...')
@@ -301,9 +376,12 @@ while 1:
 
         clear_cache = True;
 
-        if   listens[notify.channel] == 'listen_port':
-          syslog.syslog(syslog.LOG_NOTICE, "invoking RemoveCacheEntry()");
-          RemoveCacheEntry()
+        if  listens[notify.channel] == 'listen_port':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking RemovePortsCacheEntry()");
+          RemovePortsCacheEntry()
+        elif listens[notify.channel] == 'listen_file_updated':
+          syslog.syslog(syslog.LOG_NOTICE, "invoking RemoveFilesCacheEntry()");
+          RemoveFilesCacheEntry()
         elif listens[notify.channel] == 'listen_ports_moved':
           syslog.syslog(syslog.LOG_NOTICE, "invoking ProcessPortsMoved()");
           ProcessPortsMoved()
