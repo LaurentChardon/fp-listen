@@ -15,6 +15,7 @@ BASEDIR   = /var/db/freshports
 CATEGORY_CACHE_PATH    = %(BASEDIR)s/cache/categories/%%s/*
 COMMIT_CACHE_PATH      = %(BASEDIR)s/cache/commits/%%s/
 DATE_CACHE_PATH        = %(BASEDIR)s/cache/daily/%%s/%%s/%%s.*
+FILE_CACHE_PATH        = %(BASEDIR)s/cache/ports/%%s.PageSize*.PageNum*.html
 NEWS_CACHE_DIR         = %(BASEDIR)s/cache/news/
 PORT_CACHE_PATH        = %(BASEDIR)s/cache/ports/%%s/%%s/*
 SANITY_CACHE_PATH      = %(BASEDIR)s/cache/general/sanity_test_failures.%%s.*.html
