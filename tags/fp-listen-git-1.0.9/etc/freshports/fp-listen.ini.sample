@@ -1,0 +1,31 @@
+#
+# configuration items
+#
+[database]
+DBNAME   = 'freshports.org'
+DBUSER   = 'listening'
+HOST     = 127.0.0.1
+PASSWORD = ''
+
+[dirs]
+SCRIPTDIR = '/usr/local/libexec/freshports'
+
+BASEDIR   = /var/db/freshports
+
+CATEGORY_CACHE_PATH    = %(BASEDIR)s/cache/categories/%%s/*
+COMMIT_CACHE_PATH      = %(BASEDIR)s/cache/commits/%%s/
+DATE_CACHE_PATH        = %(BASEDIR)s/cache/daily/%%s/%%s/%%s.*
+FILE_CACHE_PATH        = %(BASEDIR)s/cache/ports/%%s.PageSize*.PageNum*.html
+NEWS_CACHE_DIR         = %(BASEDIR)s/cache/news/
+PORT_CACHE_PATH        = %(BASEDIR)s/cache/ports/%%s/%%s/*
+SANITY_CACHE_PATH      = %(BASEDIR)s/cache/general/sanity_test_failures.%%s.*.html
+SANITY_MAIN_CACHE_PATH = %(BASEDIR)s/cache/general/sanity_test_failures.PageSize*.html
+
+# this is the name of the zfs filesystem to rollback, including the snapshot name
+PKG_ZFS_SNAPSHOT = system/data/freshports-cache-packages/FILLTHISIN@empty
+
+[flags]
+# used for processing category updates
+DYNAMICDIR               = %(BASEDIR)s/cache
+WWWENPortsCategoriesFlag = %(DYNAMICDIR)s/signals/www.en.ports.categories
+JOBWAITING               = %(DYNAMICDIR)s/signals/job_waiting
