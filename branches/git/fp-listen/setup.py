@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='fp-listen',
-      version='1.0.10',
+      version='2,0,1',
       description='FreshPorts listening daemon',
       author='Dan Langille',
       author_email='dan@langille.org',
