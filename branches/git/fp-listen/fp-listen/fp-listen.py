@@ -16,8 +16,6 @@ import syslog	# for logging
 import glob	# for glob
 import shutil	# for rmtree
 
-import urllib	# for fetching files
-
 import configparser # for fp-listen.ini parsing
 
 from pathlib import Path # for removing files from cache dir
@@ -297,10 +295,7 @@ def Touch(File):
 
 def ProcessCategoryNew():
   syslog.syslog(syslog.LOG_NOTICE, 'We have a new category')
-  
-  urllib.urlretrieve("http://www.freebsd.org/cgi/cvsweb.cgi/~checkout~/www/en/ports/categories?rev=HEAD;content-type=text%2Fplain", '/usr/websites/freshports.org/dynamic/caching/tmp/categories');
-  Touch(config['flags']['WWWENPortsCategoriesFlag'])
-  Touch(config['flags']['JOBWAITING'])
+  # the website once did something with this. What, I'm not sure. It fetched the list of categories from a webpage and then processed them...
 
 
 def ProcessPortsMoved():

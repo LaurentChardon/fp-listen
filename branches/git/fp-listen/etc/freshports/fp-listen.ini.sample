@@ -23,9 +23,3 @@ SANITY_MAIN_CACHE_PATH = %(BASEDIR)s/cache/general/sanity_test_failures.PageSize
 
 # this is the name of the zfs filesystem to rollback, including the snapshot name
 PKG_ZFS_SNAPSHOT = system/data/freshports-cache-packages/FILLTHISIN@empty
-
-[flags]
-# used for processing category updates
-DYNAMICDIR               = %(BASEDIR)s/cache
-WWWENPortsCategoriesFlag = %(DYNAMICDIR)s/signals/www.en.ports.categories
-JOBWAITING               = %(DYNAMICDIR)s/signals/job_waiting
